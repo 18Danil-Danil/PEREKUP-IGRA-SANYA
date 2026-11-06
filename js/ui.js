@@ -1,30 +1,49 @@
 const UI = {
   apps: [
-    { id:'avtobuy',    name:'AvtoBuy',       icon:'🚗', color:'linear-gradient(135deg,#3b82f6,#1e40af)' },
-    { id:'messages',   name:'Сообщения',     icon:'💬', color:'linear-gradient(135deg,#00d68f,#008f5f)' },
-    { id:'bank',       name:'П-Банк',        icon:'🏦', color:'linear-gradient(135deg,#a855f7,#6b21a8)' },
-    { id:'garage',     name:'Гараж',         icon:'🔧', color:'linear-gradient(135deg,#f59e0b,#b45309)' },
-    { id:'jobs',       name:'Работа',        icon:'💼', color:'linear-gradient(135deg,#eab308,#854d0e)' },
-    { id:'casino',     name:'Casino',        icon:'🎰', color:'linear-gradient(135deg,#ef4444,#991b1b)' },
-    { id:'family',     name:'Родные',        icon:'👨‍👩‍👧', color:'linear-gradient(135deg,#ec4899,#831843)' },
-    { id:'gosbuy',     name:'ГосBuy',        icon:'🪪', color:'linear-gradient(135deg,#64748b,#1e293b)' },
-    { id:'profile',    name:'Профиль',       icon:'👤', color:'linear-gradient(135deg,#64748b,#334155)' },
-    { id:'shop',       name:'Магазин',       icon:'🛒', color:'linear-gradient(135deg,#06b6d4,#0e7490)' },
-    { id:'numbers',    name:'Номера',        icon:'🔢', color:'linear-gradient(135deg,#eab308,#854d0e)' },
-    { id:'auction',    name:'Аукцион',       icon:'🏛️', color:'linear-gradient(135deg,#14b8a6,#115e59)' },
-    { id:'carImport',  name:'Импорт',        icon:'✈️', color:'linear-gradient(135deg,#06b6d4,#0369a1)' },
-    { id:'realestate', name:'Недвижимость',  icon:'🏠', color:'linear-gradient(135deg,#f97316,#9a3412)' },
-    { id:'taxi',       name:'Таксопарк',     icon:'🚕', color:'linear-gradient(135deg,#fbbf24,#d97706)' },
-    { id:'sleep',      name:'Сон',           icon:'💤', color:'linear-gradient(135deg,#6366f1,#3730a3)' }
+    { id:'avtobuy',    name:'AvtoBuy',      icon:'🚗', color:'linear-gradient(135deg,#4a8cff,#1e40af)' },
+    { id:'messages',   name:'Сообщения',    icon:'💬', color:'linear-gradient(135deg,#00e5a0,#008f5f)' },
+    { id:'bank',       name:'П-Банк',       icon:'🏦', color:'linear-gradient(135deg,#b366ff,#6b21a8)' },
+    { id:'garage',     name:'Гараж',        icon:'🔧', color:'linear-gradient(135deg,#ffb547,#b45309)' },
+    { id:'jobs',       name:'Работа',       icon:'💼', color:'linear-gradient(135deg,#ffd93d,#a16207)' },
+    { id:'casino',     name:'Casino',       icon:'🎰', color:'linear-gradient(135deg,#ff5470,#991b1b)' },
+    { id:'family',     name:'Родные',       icon:'👨‍👩‍👧', color:'linear-gradient(135deg,#ff6bb3,#831843)' },
+    { id:'gosbuy',     name:'ГосBuy',       icon:'🪪', color:'linear-gradient(135deg,#8ba3c7,#1e293b)' },
+    { id:'profile',    name:'Профиль',      icon:'👤', color:'linear-gradient(135deg,#7c8fa8,#334155)' },
+    { id:'shop',       name:'Магазин',      icon:'🛒', color:'linear-gradient(135deg,#3dd8e8,#0e7490)' },
+    { id:'numbers',    name:'Номера',       icon:'🔢', color:'linear-gradient(135deg,#ffd93d,#854d0e)' },
+    { id:'auction',    name:'Аукцион',      icon:'🏛️', color:'linear-gradient(135deg,#3ddbc0,#115e59)' },
+    { id:'carImport',  name:'Импорт',       icon:'✈️', color:'linear-gradient(135deg,#3dd8e8,#0369a1)' },
+    { id:'realestate', name:'Недвижимость', icon:'🏠', color:'linear-gradient(135deg,#ff9352,#9a3412)' },
+    { id:'taxi',       name:'Таксопарк',    icon:'🚕', color:'linear-gradient(135deg,#ffd93d,#d97706)' },
+    { id:'sleep',      name:'Сон',          icon:'💤', color:'linear-gradient(135deg,#8b93ff,#3730a3)' }
   ],
 
-  init() { Game.init(); this.renderHome(); this.updateStatus(); },
+  _lastMoney: null,
+
+  init() {
+    Game.init();
+    this.renderHome();
+    this.updateStatus();
+    this._installRipple();
+    this._installScreenObserver();
+    this._installToast();
+  },
 
   updateStatus() {
     const clockEl = document.getElementById('clock');
     const moneyEl = document.getElementById('money');
     if (!clockEl || !moneyEl) return;
-    moneyEl.textContent = '💰 ' + Game.fmt(Game.state.money);
+
+    const newVal = Game.state.money;
+    moneyEl.textContent = '💰 ' + Game.fmt(newVal);
+
+    if (this._lastMoney !== null && this._lastMoney !== newVal) {
+      moneyEl.classList.remove('pulse');
+      void moneyEl.offsetWidth;
+      moneyEl.classList.add('pulse');
+    }
+    this._lastMoney = newVal;
+
     const h = String(Game.state.hour).padStart(2,'0');
     clockEl.textContent = `День ${Game.state.day}, ${h}:00`;
   },
@@ -32,7 +51,7 @@ const UI = {
   renderHome() {
     const s = document.getElementById('screen');
     s.innerHTML = `<div class="app-grid">` + this.apps.map((a,i) =>
-      `<div class="app-icon" style="animation-delay:${i*0.03}s" onclick="UI.open('${a.id}')">
+      `<div class="app-icon" style="animation-delay:${(i*0.035).toFixed(2)}s" onclick="UI.open('${a.id}')">
         <div class="icon" style="background:${a.color}">${a.icon}</div>
         <span>${a.name}</span>
       </div>`).join('') + `</div>`;
@@ -51,10 +70,10 @@ const UI = {
     }
     try {
       if (Apps[id] && Apps[id].render) Apps[id].render();
-      else alert('Приложение "' + id + '" не загружено. Проверь index.html');
+      else this.toast('Приложение "' + id + '" не загружено', 'red');
     } catch (e) {
       console.error('Render error in app', id, e);
-      alert('Ошибка в приложении "' + id + '":\n' + e.message);
+      this.toast('Ошибка: ' + e.message, 'red');
     }
   },
 
@@ -65,6 +84,79 @@ const UI = {
     }
     this.renderHome();
     this.updateStatus();
+  },
+
+  // === Анимация смены экрана при каждом изменении innerHTML ===
+  _installScreenObserver() {
+    const s = document.getElementById('screen');
+    if (!s) return;
+    const observer = new MutationObserver(() => {
+      s.style.animation = 'none';
+      void s.offsetWidth;
+      s.style.animation = '';
+    });
+    observer.observe(s, { childList: true });
+  },
+
+  // === Ripple на кнопках ===
+  _installRipple() {
+    document.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn || btn.disabled) return;
+      const rect = btn.getBoundingClientRect();
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      ripple.style.left = (e.clientX - rect.left) + 'px';
+      ripple.style.top = (e.clientY - rect.top) + 'px';
+      btn.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 650);
+    }, { passive:true });
+  },
+
+  // === Toast-уведомления (мягче alert'ов) ===
+  _installToast() {
+    const style = document.createElement('style');
+    style.textContent = `
+      .toast-wrap {
+        position:fixed; top:24px; left:50%; transform:translateX(-50%);
+        z-index:9999; display:flex; flex-direction:column; gap:8px;
+        pointer-events:none; width:calc(100% - 40px); max-width:380px;
+      }
+      .toast {
+        padding:12px 18px; border-radius:14px; font-size:14px; font-weight:600;
+        color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.5);
+        animation:toastIn .35s cubic-bezier(.16,1,.3,1);
+        backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+        border:1px solid rgba(255,255,255,.15);
+      }
+      .toast.green { background:linear-gradient(135deg,rgba(0,229,160,.9),rgba(0,168,116,.9)); }
+      .toast.red   { background:linear-gradient(135deg,rgba(255,84,112,.9),rgba(196,30,47,.9)); }
+      .toast.gold  { background:linear-gradient(135deg,rgba(255,205,60,.95),rgba(224,168,0,.95)); color:#1a1a2e; }
+      .toast.info  { background:linear-gradient(135deg,rgba(124,92,255,.9),rgba(90,63,232,.9)); }
+      @keyframes toastIn {
+        from { opacity:0; transform:translateY(-12px) scale(.95); }
+        to   { opacity:1; transform:translateY(0)    scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
+    let wrap = document.createElement('div');
+    wrap.className = 'toast-wrap';
+    document.body.appendChild(wrap);
+    this._toastWrap = wrap;
+  },
+
+  toast(text, type = 'info', duration = 2600) {
+    if (!this._toastWrap) return;
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = text;
+    this._toastWrap.appendChild(t);
+    setTimeout(() => {
+      t.style.transition = 'opacity .3s, transform .3s';
+      t.style.opacity = '0';
+      t.style.transform = 'translateY(-8px)';
+      setTimeout(() => t.remove(), 320);
+    }, duration);
   }
 };
 
@@ -76,7 +168,7 @@ const UI = {
     console.error('Boot error:', e);
     const scr = document.getElementById('screen');
     if (scr) scr.innerHTML =
-      '<div class="card" style="background:#7f1d1d"><h3>Ошибка запуска</h3>' +
+      '<div class="card" style="background:rgba(255,84,112,.25);border-color:#ff5470"><h3>⚠ Ошибка запуска</h3>' +
       '<div style="font-size:12px;margin-top:6px">' + e.message + '</div>' +
       '<button style="margin-top:10px" onclick="localStorage.clear();location.reload()">Сброс</button></div>';
   }
