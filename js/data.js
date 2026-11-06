@@ -1,8 +1,5 @@
-/* ====== Константы игры v3.0 ====== */
-
 const Apps = {};
 
-/* Реальные цены на авто (новые: 2024, б/у: 2005-2020) */
 const CAR_DB = [
   { name:"Комета 2107",     price:70000,   market:110000,  icon:"🚗" },
   { name:"Комета 2110",     price:130000,  market:210000,  icon:"🚙" },
@@ -100,12 +97,12 @@ const AUCTION_CARS = [
 ];
 
 const CONTAINER_CONTENTS = [
-  { name:"Хлам",              value:0,       icon:"🗑" },
-  { name:"Запчасти",          value:300000,  icon:"🔩" },
-  { name:"Мотоцикл",          value:700000,  icon:"🏍" },
-  { name:"BMR M5",            value:3500000, icon:"🏎" },
-  { name:"Toreta LC",         value:4200000, icon:"🚙" },
-  { name:"Porscha 911",       value:6500000, icon:"🏎" }
+  { name:"Хлам",       value:0,       icon:"🗑" },
+  { name:"Запчасти",   value:300000,  icon:"🔩" },
+  { name:"Мотоцикл",   value:700000,  icon:"🏍" },
+  { name:"BMR M5",     value:3500000, icon:"🏎" },
+  { name:"Toreta LC",  value:4200000, icon:"🚙" },
+  { name:"Porscha 911",value:6500000, icon:"🏎" }
 ];
 
 const IMPORT_COUNTRIES = [
@@ -115,7 +112,6 @@ const IMPORT_COUNTRIES = [
   { id:'uae',   name:'🇦🇪 ОАЭ',    deliveryDays:6, fee:0.20 }
 ];
 
-/* ===== РАБОТЫ ===== */
 const JOBS = [
   { id:'crane',     name:'🏗 Крановщик',    desc:'Тайминг · 5 попыток × 2 000 ₽',     income:10000 },
   { id:'wash',      name:'🧽 Мойка машин',  desc:'Кликер · 8 сек · 500 ₽/клик',         income:'~4000' },
@@ -124,17 +120,12 @@ const JOBS = [
   { id:'truck',     name:'🚛 Дальнобойщик', desc:'3 дорожных события · выбор',          income:20000 }
 ];
 
-/* ===== ГОСБУЙ ===== */
 const GOV_FEES = {
-  passport: 0,
-  license: 5000,
-  pts: 1000,        // на каждую машину при покупке
-  registration: 2000, // постановка на учёт
-  taxRate: 0.13,    // НДФЛ с прибыли
-  taxPenaltyPerDay: 0.05
+  passport: 0, license: 5000,
+  pts: 1000, registration: 2000,
+  taxRate: 0.13, taxPenaltyPerDay: 0.05
 };
 
-/* ===== СЕМЬЯ (Родные 2.0) ===== */
 const FAMILY_MEMBERS = [
   { key:'mom',    name:'👩 Мама',      birthDay:[8,14],  gift:25000 },
   { key:'grandma',name:'👵 Бабушка',   birthDay:[3,22],  gift:15000 },
@@ -148,10 +139,59 @@ const FAMILY_EVENTS = {
   feb23:    '🎖 С 23 Февраля!'
 };
 
-/* Темы для разговоров — рандомные реплики */
 const FAMILY_REPLIES = {
   how:      ['Всё хорошо, а у тебя?', 'Потихоньку, на даче копаюсь', 'Скучаю по тебе!', 'Нормально, работаю'],
   advice:   ['Не бери без осмотра', 'Следи за налогами, а то ГосBuy оштрафует', 'Бери с умом, не гонись за дешёвкой', 'Ты бы машину купил, а не в казино играл'],
   brag:     ['Молодец! Горжусь!', 'Ого, серьёзная тачка!', 'Вот это по-нашему!'],
   hard:     ['Всё наладится, сынок', 'Ты сильный, справишься', 'Держись, я в тебя верю']
+};
+
+/* ===== Бизнес (СТО / мойка / автосалон) ===== */
+const BUSINESSES = [
+  {
+    id:'sto', name:'СТО «Мастер»', icon:'🔧',
+    price:1500000, dailyIncome:35000,
+    desc:'Своё СТО: ремонт своих машин −50%',
+    perks:{ repairDiscount:0.5 }
+  },
+  {
+    id:'wash', name:'Автомойка', icon:'🧽',
+    price:800000, dailyIncome:18000,
+    desc:'Мойка машин: клиенты каждый день',
+    perks:{}
+  },
+  {
+    id:'salon', name:'Автосалон', icon:'🏪',
+    price:4000000, dailyIncome:80000,
+    desc:'Автосалон: продажи идут сами, но медленнее',
+    perks:{ autoSell:true }
+  }
+];
+
+/* ===== Торг (реплики продавца) ===== */
+const TRADE_ARGUMENTS = [
+  { id:'lowball',  label:'Предложить низкую цену', risk:'high',  discountRange:[0.15, 0.30] },
+  { id:'defect',   label:'Указать на дефект',       risk:'low',   discountRange:[0.05, 0.15] },
+  { id:'away',     label:'«Слишком дорого»',        risk:'med',   discountRange:[0.03, 0.10] },
+  { id:'cash',     label:'«Наличные сейчас»',       risk:'low',   discountRange:[0.02, 0.08] },
+  { id:'leave',    label:'Развернуться и уйти',     risk:'high',  discountRange:[0.10, 0.20] }
+];
+
+const TRADE_REPLIES = {
+  agree:   ['Хорошо, по рукам!', 'Убедил, беру', 'Ладно, забирай', 'Договорились'],
+  refuse:  ['Нет, это слишком мало', 'Не пойдёт', 'За такую цену не отдам', 'Я подумаю ещё'],
+  angry:   ['Ты что, с дуба рухнул?', 'Да ты наглеешь!', 'Не звони мне больше', 'Не трать моё время'],
+  thinking:['Хм... подумаю...', 'Ну давай пополам', 'Скину, но чуть-чуть']
+};
+
+/* ===== Гонки ===== */
+const RACE_TIERS = [
+  { id:'street', name:'🌃 Ночные гонки',   buy:10000,  mult:2,  skill:0.55 },
+  { id:'club',   name:'🏎 Клубные гонки',  buy:50000,  mult:2,  skill:0.50 },
+  { id:'pro',    name:'🥇 Профи-гонки',    buy:200000, mult:2.5,skill:0.45 }
+];
+
+const REVIEW_PHRASES = {
+  positive: ['Отличный продавец!', 'Машина как описана, рекомендую', 'Всё честно, доволен', 'Продавец адекватный, скинул немного'],
+  negative: ['Скрыл дефект!', 'Обманул с пробегом', 'Не берите у него', 'Слил хлам за дорого']
 };
