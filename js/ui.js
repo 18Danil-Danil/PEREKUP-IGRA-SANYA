@@ -4,7 +4,10 @@ const UI = {
     { id:'messages',   name:'Сообщения',     icon:'💬', color:'linear-gradient(135deg,#00d68f,#008f5f)' },
     { id:'bank',       name:'П-Банк',        icon:'🏦', color:'linear-gradient(135deg,#a855f7,#6b21a8)' },
     { id:'garage',     name:'Гараж',         icon:'🔧', color:'linear-gradient(135deg,#f59e0b,#b45309)' },
+    { id:'jobs',       name:'Работа',        icon:'💼', color:'linear-gradient(135deg,#eab308,#854d0e)' },
     { id:'casino',     name:'Casino',        icon:'🎰', color:'linear-gradient(135deg,#ef4444,#991b1b)' },
+    { id:'family',     name:'Родные',        icon:'👨‍👩‍👧', color:'linear-gradient(135deg,#ec4899,#831843)' },
+    { id:'gosbuy',     name:'ГосBuy',        icon:'🪪', color:'linear-gradient(135deg,#64748b,#1e293b)' },
     { id:'profile',    name:'Профиль',       icon:'👤', color:'linear-gradient(135deg,#64748b,#334155)' },
     { id:'shop',       name:'Магазин',       icon:'🛒', color:'linear-gradient(135deg,#06b6d4,#0e7490)' },
     { id:'numbers',    name:'Номера',        icon:'🔢', color:'linear-gradient(135deg,#eab308,#854d0e)' },
@@ -42,18 +45,13 @@ const UI = {
   },
 
   open(id) {
-    // при переходе между приложениями — гасим активный краш
     if (id !== 'casino' && Apps.casino && Apps.casino.crashState && Apps.casino.crashState.interval) {
       clearInterval(Apps.casino.crashState.interval);
       Apps.casino.crashState.active = false;
     }
     try {
-      if (Apps[id] && Apps[id].render) {
-        Apps[id].render();
-      } else {
-        console.error('App not found:', id);
-        alert('Приложение "' + id + '" не загружено.\nПроверьте index.html — там должен быть <script src="js/apps/' + id + '.js">');
-      }
+      if (Apps[id] && Apps[id].render) Apps[id].render();
+      else alert('Приложение "' + id + '" не загружено. Проверь index.html');
     } catch (e) {
       console.error('Render error in app', id, e);
       alert('Ошибка в приложении "' + id + '":\n' + e.message);
