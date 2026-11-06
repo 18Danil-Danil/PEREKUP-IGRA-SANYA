@@ -1,9 +1,17 @@
-/* ====== Ядро игры v3.0 ====== */
-
 const Game = {
-  SAVE_VERSION: '3.0',
-  SAVE_KEY: 'perekup_save_v3',
+  SAVE_VERSION: '3.2',
+  SAVE_KEY_PREFIX: 'perekup_slot_',
+  ACTIVE_SLOT_KEY: 'perekup_active_slot',
   state: null,
+
+  get activeSlot() {
+    const v = parseInt(localStorage.getItem(this.ACTIVE_SLOT_KEY) || '1');
+    return (v >= 1 && v <= 3) ? v : 1;
+  },
+  set activeSlot(n) {
+    localStorage.setItem(this.ACTIVE_SLOT_KEY, String(n));
+  },
+  get SAVE_KEY() { return this.SAVE_KEY_PREFIX + this.activeSlot; },
 
   init() {
     let saved = null;
@@ -29,9 +37,9 @@ const Game = {
     if (!s.apartments) s.apartments = [];
     if (!s.taxiDrivers) s.taxiDrivers = [];
     if (!s.family) s.family = {};
-    if (!s.family.mom)     s.family.mom     = { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0 };
-    if (!s.family.grandma) s.family.grandma = { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0 };
-    if (!s.family.grandpa) s.family.grandpa = { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0 };
+    ['mom','grandma','grandpa'].forEach(k => {
+      if (!s.family[k]) s.family[k] = { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0, needCongrats:false, lastBirthdayDay:0, lastVisit:0, chatLog:[] };
+    });
     if (!s.stats) s.stats = { bought:0, sold:0, profit:0, tuningsInstalled:0, numbersSold:0 };
     if (s.stats.tuningsInstalled === undefined) s.stats.tuningsInstalled = 0;
     if (s.stats.numbersSold === undefined) s.stats.numbersSold = 0;
@@ -48,6 +56,17 @@ const Game = {
     if (s.hasLicense === undefined) s.hasLicense = false;
     if (!s.fines) s.fines = [];
     if (!s.registry) s.registry = [];
+    // v3.2
+    if (!s.myListings) s.myListings = [];
+    if (!s.reviews) s.reviews = [];
+    if (!s.lawsuits) s.lawsuits = [];
+    if (!s.businesses) s.businesses = { sto:null, wash:null, salon:null };
+    if (!s.pendingBuyers) s.pendingBuyers = [];
+    if (s.driveAceBest === undefined) s.driveAceBest = 0;
+    if (s.racesWon === undefined) s.racesWon = 0;
+    if (s.racesLost === undefined) s.racesLost = 0;
+    if (s.reputation === undefined) s.reputation = 5;
+    if (s.activeTrade === undefined) s.activeTrade = null;
     this.save();
   },
 
@@ -59,19 +78,19 @@ const Game = {
       tools:{thickness:false, obd:false, mileage:false},
       numbersOwned:[], apartments:[], taxiDrivers:[],
       auctionLots:[], auctionNextId:1, visa:false, imports:[],
-      casinoBet: 1000,
-      lastWorkDay: 0,
-      jobsDoneToday: [],
-      taxDebt: 0,
-      lastTaxDay: 0,
+      casinoBet: 1000, lastWorkDay: 0, jobsDoneToday: [],
+      taxDebt: 0, lastTaxDay: 0,
       passport: { firstName:'Иван', lastName:'Петров', gender:'m', birthDay:[5,15], created:false },
-      hasLicense: false,
-      fines: [],
-      registry: [],
+      hasLicense: false, fines: [], registry: [],
+      myListings: [], reviews: [], lawsuits: [],
+      businesses: { sto:null, wash:null, salon:null },
+      pendingBuyers: [],
+      driveAceBest: 0, racesWon: 0, racesLost: 0,
+      activeTrade: null,
       family:{
-        mom:     { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0 },
-        grandma: { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0 },
-        grandpa: { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0 }
+        mom:     { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0, needCongrats:false, lastBirthdayDay:0, lastVisit:0, chatLog:[] },
+        grandma: { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0, needCongrats:false, lastBirthdayDay:0, lastVisit:0, chatLog:[] },
+        grandpa: { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0, needCongrats:false, lastBirthdayDay:0, lastVisit:0, chatLog:[] }
       },
       stats:{ bought:0, sold:0, profit:0, tuningsInstalled:0, numbersSold:0 }
     };
@@ -95,14 +114,16 @@ const Game = {
       this.state.jobsDoneToday = [];
       const rent = this.state.apartments.reduce((s,a)=>s+a.rent,0);
       const taxi = this.state.taxiDrivers.reduce((s,d)=>s+d.income,0);
-      this.state.money += rent + taxi;
+      const biz = Object.values(this.state.businesses).filter(Boolean).reduce((s,b)=>s+b.dailyIncome,0);
+      this.state.money += rent + taxi + biz;
       this.state.taxiDrivers.forEach(d => {
         if (Math.random() < 0.15) {
           const car = this.state.garage.find(c => c.id === d.carId);
           if (car) car.defects.push("ДТП в такси");
         }
       });
-      // Налоги — раз в 7 дней
+      // Покупатели на свои объявления раз в день
+      if (window.Apps && Apps.trade && Apps.trade.spawnBuyers) Apps.trade.spawnBuyers();
       if (this.state.day - this.state.lastTaxDay >= 7 && this.state.taxDebt > 0) {
         this.state.taxDebt = Math.round(this.state.taxDebt * (1 + GOV_FEES.taxPenaltyPerDay));
         this.state.lastTaxDay = this.state.day;
@@ -116,6 +137,55 @@ const Game = {
   },
 
   save() { try { localStorage.setItem(this.SAVE_KEY, JSON.stringify(this.state)); } catch(e){} },
+
+  // ===== Слоты сохранений =====
+  getSlotsInfo() {
+    const info = [];
+    for (let i = 1; i <= 3; i++) {
+      let data = null;
+      try { data = localStorage.getItem(this.SAVE_KEY_PREFIX + i); } catch(e){}
+      if (data) {
+        try {
+          const p = JSON.parse(data);
+          info.push({
+            slot: i, empty:false,
+            day: p.day, money: p.money, level: p.level,
+            garageCount: (p.garage||[]).length,
+            active: i === this.activeSlot
+          });
+        } catch(e) {
+          info.push({ slot:i, empty:true, active: i === this.activeSlot });
+        }
+      } else {
+        info.push({ slot:i, empty:true, active: i === this.activeSlot });
+      }
+    }
+    return info;
+  },
+
+  loadSlot(n) {
+    if (n < 1 || n > 3) return;
+    const data = localStorage.getItem(this.SAVE_KEY_PREFIX + n);
+    if (!data) { this.activeSlot = n; this.newGame(); return; }
+    try {
+      const parsed = JSON.parse(data);
+      this.activeSlot = n;
+      if (parsed.saveVersion !== this.SAVE_VERSION) { this.newGame(); return; }
+      this.state = parsed;
+      this.migrate();
+      this.save();
+    } catch(e) { alert('Ошибка загрузки слота'); }
+  },
+
+  deleteSlot(n) {
+    localStorage.removeItem(this.SAVE_KEY_PREFIX + n);
+  },
+
+  saveToSlot(n) {
+    if (n === this.activeSlot) { this.save(); return; }
+    try { localStorage.setItem(this.SAVE_KEY_PREFIX + n, JSON.stringify(this.state)); } catch(e){}
+  },
+
   fmt(n) { return Math.round(n).toLocaleString('ru-RU') + ' ₽'; },
   addXP(n) {
     this.state.xp += n;
@@ -123,19 +193,22 @@ const Game = {
       this.state.xp -= this.state.level * 100; this.state.level++;
     }
   },
-
-  // НДФЛ 13% — начисляется при профите
   applyTax(profit) {
     if (profit <= 0) return 0;
     const tax = Math.round(profit * GOV_FEES.taxRate);
     this.state.taxDebt += tax;
     return tax;
   },
-
-  // Добавить штраф
   addFine(reason, amount) {
     this.state.fines.push({ reason, amount, day: this.state.day, paid:false });
     this.state.taxDebt += amount;
+  },
+  addReview(fromName, text, rating) {
+    this.state.reviews.push({ from: fromName, text, rating, day: this.state.day });
+    if (this.state.reviews.length > 30) this.state.reviews.shift();
+  },
+  changeReputation(delta) {
+    this.state.reputation = Math.max(0, Math.min(100, (this.state.reputation||0) + delta));
   }
 };
 
@@ -162,7 +235,6 @@ function generateListing(id) {
     year: 2005 + Math.floor(Math.random()*18),
     mileage: 50000 + Math.floor(Math.random()*250000),
     seller: ["Алексей","Дмитрий","Сергей","Марина","Ольга"][Math.floor(Math.random()*5)],
-    number, sold:false,
-    registered: false
+    number, sold:false, registered:false
   };
 }
