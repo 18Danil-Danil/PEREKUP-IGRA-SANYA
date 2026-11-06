@@ -108,6 +108,7 @@ button {
   box-shadow:0 4px 12px rgba(108,92,231,0.3); letter-spacing:-.1px;
 }
 button:active { transform:scale(.95); box-shadow:0 2px 6px rgba(108,92,231,0.4); }
+button:disabled { opacity:.4; cursor:not-allowed; }
 button.green { background:linear-gradient(135deg,#00d68f,#00a874); box-shadow:0 4px 12px var(--green-glow); }
 button.red   { background:linear-gradient(135deg,#ff4757,#c41e2f); box-shadow:0 4px 12px rgba(255,71,87,0.3); }
 button.gray  { background:linear-gradient(135deg,#3a3a5c,#2a2a45); box-shadow:0 4px 12px rgba(0,0,0,0.3); border:1px solid var(--card-border); }
@@ -128,13 +129,16 @@ button.gold  { background:linear-gradient(135deg,#ffd93d,#e0a800); color:#1a1a2e
 .header .back:active { transform:scale(.9); }
 .header h2 { font-size:22px; font-weight:800; letter-spacing:-.5px; }
 
-input {
+input, select, textarea {
   width:100%; padding:12px 16px; border-radius:14px;
   border:1px solid var(--card-border); background:var(--card-bg);
   color:var(--text); margin-bottom:14px; font-family:inherit; font-size:14px;
   backdrop-filter:blur(10px); transition:all .2s ease;
 }
-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(108,92,231,0.2); }
+input:focus, select:focus, textarea:focus {
+  outline:none; border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(108,92,231,0.2);
+}
 input::placeholder { color:var(--text-dim); }
 
 @media (max-width:480px) {
