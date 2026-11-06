@@ -1,4 +1,4 @@
-Apps.import = {
+Apps.carImport = {
   render() {
     const s = document.getElementById('screen');
     if (!Game.state.visa) {
@@ -6,8 +6,8 @@ Apps.import = {
         <div class="header"><span class="back" onclick="UI.back()">←</span><h2>Импорт ✈️</h2></div>
         <div class="card" style="background:linear-gradient(135deg,rgba(6,182,212,.15),rgba(3,105,161,.15))">
           <h3>Виза</h3>
-          <div style="color:#888;font-size:13px;margin:10px 0">Оформите визу для доступа к аукционам Японии, Кореи, Китая и ОАЭ. Заказ идёт с доставкой через несколько дней.</div>
-          <button class="gold" onclick="Apps.import.buyVisa()">Оформить (100 000 ₽)</button>
+          <div style="color:#888;font-size:13px;margin:10px 0">Оформите визу для доступа к аукционам Японии, Кореи, Китая и ОАЭ.</div>
+          <button class="gold" onclick="Apps.carImport.buyVisa()">Оформить (100 000 ₽)</button>
         </div>
       `;
       return;
@@ -18,7 +18,7 @@ Apps.import = {
         <h3>Выберите страну</h3>
       </div>
       ${IMPORT_COUNTRIES.map(c => `
-        <div class="card" onclick="Apps.import.country('${c.id}')" style="cursor:pointer">
+        <div class="card" onclick="Apps.carImport.country('${c.id}')" style="cursor:pointer">
           <h3>${c.name}</h3>
           <div style="font-size:12px;color:#888">Доставка ${c.deliveryDays} дн · Наценка ${Math.round(c.fee*100)}%</div>
         </div>
@@ -52,7 +52,7 @@ Apps.import = {
     const pool = CAR_DB.filter(x => x.price > 500000);
     const s = document.getElementById('screen');
     s.innerHTML = `
-      <div class="header"><span class="back" onclick="Apps.import.render()">←</span><h2>${c.name}</h2></div>
+      <div class="header"><span class="back" onclick="Apps.carImport.render()">←</span><h2>${c.name}</h2></div>
       ${pool.map((car,i) => {
         const finalPrice = Math.round(car.price * (1 + c.fee));
         return `<div class="card" style="display:flex;justify-content:space-between;align-items:center">
@@ -61,7 +61,7 @@ Apps.import = {
             <div class="price">${Game.fmt(finalPrice)}</div>
             <div style="font-size:11px;color:#888">Доставка ${c.deliveryDays} дн</div>
           </div>
-          <button class="green" onclick="Apps.import.order('${id}', ${i})">Заказать</button>
+          <button class="green" onclick="Apps.carImport.order('${id}', ${i})">Заказать</button>
         </div>`;
       }).join('')}
     `;
