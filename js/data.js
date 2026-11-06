@@ -85,3 +85,31 @@ const TOOLS_SHOP = [
   { id:'obd', name:'OBD-сканер', price:50000, icon:'🔌', desc:'Скрытые дефекты и пробег' },
   { id:'mileage', name:'Корректор пробега', price:80000, icon:'⏮', desc:'Задел на будущее' }
 ];
+/* ===== Аукцион ===== */
+const AUCTION_CARS = [
+  { name:"Toyota Supra",    price:3000000, market:4500000, icon:"🏎" },
+  { name:"Nissan Skyline",  price:2500000, market:4000000, icon:"🏎" },
+  { name:"Honda NSX",       price:2800000, market:4200000, icon:"🏎" },
+  { name:"Mazda RX-7",      price:1800000, market:2800000, icon:"🏎" },
+  { name:"Mitsubishi Evo",  price:1500000, market:2200000, icon:"🚙" },
+  { name:"Subaru WRX",      price:1400000, market:2100000, icon:"🚙" },
+  { name:"BMW M3 E46",      price:2500000, market:3500000, icon:"🏎" },
+  { name:"Mercedes AMG GT", price:5500000, market:8000000, icon:"🏎" }
+];
+
+const CONTAINER_CONTENTS = [
+  { name:"Хлам",              value:0,       icon:"🗑" },
+  { name:"Запчасти",          value:200000,  icon:"🔩" },
+  { name:"Мотоцикл",          value:600000,  icon:"🏍" },
+  { name:"BMW M5",            value:3500000, icon:"🏎" },
+  { name:"Toyota LC",         value:4000000, icon:"🚙" },
+  { name:"Porsche 911",       value:6000000, icon:"🏎" }
+];
+
+/* ===== Импорт ===== */
+const IMPORT_COUNTRIES = [
+  { id:'japan', name:'🇯🇵 Япония', deliveryDays:5, fee:0.15 },
+  { id:'korea', name:'🇰🇷 Корея',  deliveryDays:4, fee:0.12 },
+  { id:'china', name:'🇨🇳 Китай',  deliveryDays:7, fee:0.10 },
+  { id:'uae',   name:'🇦🇪 ОАЭ',    deliveryDays:6, fee:0.20 }
+];
