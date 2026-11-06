@@ -7,7 +7,7 @@ Apps.avtobuy = {
     if (this.filter) list = list.filter(l => l.name.toLowerCase().includes(this.filter.toLowerCase()));
     s.innerHTML = `
       <div class="header"><span class="back" onclick="UI.back()">←</span><h2>AvtoBuy</h2></div>
-      ${noLicense ? `<div class="card" style="background:linear-gradient(135deg,rgba(255,71,87,.15),rgba(196,30,47,.15));border-color:rgba(255,71,87,.3)">
+      ${noLicense ? `<div class="card" style="background:linear-gradient(135deg,rgba(255,84,112,.15),rgba(196,30,47,.15));border-color:rgba(255,84,112,.3)">
         <h3>⚠ Нет прав</h3>
         <div style="font-size:13px;color:#888;margin:8px 0">Оформи права в ГосBuy, чтобы покупать и продавать авто.</div>
         <button class="red" onclick="UI.open('gosbuy')">Перейти в ГосBuy</button>
@@ -49,12 +49,9 @@ Apps.avtobuy = {
       </div>
       <div class="btn-row">
         ${!l.inspected && hasTools?`<button class="gray" onclick="Apps.avtobuy.inspect(${l.id})">🔍 Осмотреть</button>`:''}
-        <button class="green" onclick="Apps.avtobuy.buy(${l.id}, false)">Купить</button>
+        <button class="green" onclick="Apps.avtobuy.buy(${l.id})">Купить сразу</button>
       </div>
-      <div class="btn-row">
-        <button onclick="Apps.avtobuy.buy(${l.id}, true)">💰 С задатком (-10%, риск)</button>
-        <button class="gray" onclick="Apps.avtobuy.bargain(${l.id})">Торг</button>
-      </div>
+      <button style="width:100%;margin-top:8px" onclick="Apps.trade.startSellerTrade(${l.id})">💬 Торговаться</button>
     `;
   },
   inspect(id) {
@@ -72,44 +69,20 @@ Apps.avtobuy = {
     alert('Осмотр выполнен. Скрытых дефектов: ' + keep.length);
     this.detail(id);
   },
-  buy(id, withDeposit) {
+  buy(id) {
     const l = Game.state.listings.find(x => x.id === id);
     if (!l) return;
-    if (!Game.state.hasLicense) {
-      alert('Без прав покупать нельзя. Оформи в ГосBuy.');
-      return;
-    }
-    let finalPrice = l.price;
-    if (withDeposit) {
-      if (Math.random() < 0.15) {
-        Game.state.money -= 20000;
-        l.sold = true;
-        Game.save(); UI.updateStatus();
-        alert('Мошенник! Задаток 20 000 ₽ утерян, объявление удалено.');
-        this.render(); return;
-      }
-      finalPrice = Math.round(l.price * 0.9);
-    }
-    const total = finalPrice + GOV_FEES.pts;
-    if (Game.state.money < total) return alert(`Недостаточно денег! Нужно ${Game.fmt(total)} (включая ПТС ${Game.fmt(GOV_FEES.pts)})`);
+    if (!Game.state.hasLicense) return alert('Без прав покупать нельзя. Оформи в ГосBuy.');
+    const total = l.price + GOV_FEES.pts;
+    if (Game.state.money < total) return alert(`Недостаточно! Нужно ${Game.fmt(total)}`);
     Game.state.money -= total;
     l.sold = true;
     l.defects = [...l.defects, ...l.hiddenDefects];
-    Game.state.garage.push({ ...l, price: finalPrice, tunings: [], registered:false });
+    Game.state.garage.push({ ...l, price: l.price, tunings: [], registered:false });
     Game.state.stats.bought++;
     Game.addXP(20);
     Game.save(); UI.updateStatus();
-    alert(`Куплено: ${l.name} за ${Game.fmt(finalPrice)}\nПТС: ${Game.fmt(GOV_FEES.pts)}\n\n⚠ Не забудь поставить на учёт в ГосBuy!`);
+    alert(`Куплено: ${l.name} за ${Game.fmt(l.price)}\n\n⚠ Не забудь поставить на учёт в ГосBuy!`);
     this.render();
-  },
-  bargain(id) {
-    const l = Game.state.listings.find(x => x.id === id);
-    if (!l) return;
-    const disc = Math.round(l.price * 0.08);
-    const success = Math.random() < 0.4 + Game.state.reputation * 0.03;
-    if (success) { l.price = Math.max(0, l.price - disc); alert(`Скидка ${Game.fmt(disc)}`); }
-    else { Game.state.reputation = Math.max(0, Game.state.reputation - 1); alert('Отказ. -1 репутация'); }
-    Game.save(); UI.updateStatus();
-    this.detail(id);
   }
 };
