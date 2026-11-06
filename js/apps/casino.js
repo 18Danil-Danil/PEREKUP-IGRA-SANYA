@@ -3,7 +3,7 @@ Apps.casino = {
   crashState: { active:false, bet:0, mult:1, crashAt:0, interval:null },
   bjState: { active:false, bet:0, playerHand:[], dealerHand:[], deck:[] },
 
-  getBet() { return Game.state.casinoBet || 10000; },
+  getBet() { return Game.state.casinoBet || 1000; },
   setBet(v) {
     let n = parseInt(v);
     if (isNaN(n) || n < 100) n = 100;
@@ -47,7 +47,7 @@ Apps.casino = {
 
       <div class="card">
         <h3>🎰 Слоты</h3>
-        <div style="font-size:12px;color:#888;margin-bottom:8px">Три семёрки = ×10</div>
+        <div style="font-size:12px;color:#888;margin-bottom:8px">Три одинаковых = ×10 · Два одинаковых = ×2</div>
         <button onclick="Apps.casino.slots()">Крутить (${Game.fmt(bet)})</button>
       </div>
 
@@ -62,7 +62,7 @@ Apps.casino = {
               <button class="green" onclick="Apps.casino.bjHit()">Взять</button>
               <button class="gray" onclick="Apps.casino.bjStand()">Хватит</button>
              </div>`
-          : `<div style="color:#888;font-size:12px;margin-bottom:8px">Блэкджек ×2.5 · победа ×2</div>
+          : `<div style="color:#888;font-size:12px;margin-bottom:8px">Блэкджек ×2.5 · победа ×2 · ничья возврат</div>
              <button onclick="Apps.casino.bjStart()">Играть (${Game.fmt(bet)})</button>`}
       </div>
 
