@@ -88,6 +88,7 @@ Apps.carImport = {
 
   tick() {
     if (!Game.state.imports) return;
+    const arrived = [];
     Game.state.imports = Game.state.imports.filter(im => {
       im.daysLeft--;
       if (im.daysLeft <= 0) {
@@ -96,11 +97,15 @@ Apps.carImport = {
           price:im.price, market:im.market,
           defects: [], hiddenDefects: [], inspected:true,
           tunings: [], year: 2015, mileage: 30000,
-          number: null, sold:false
+          number: null, sold:false, registered:false
         });
+        arrived.push(im.name);
         return false;
       }
       return true;
     });
+    if (arrived.length) {
+      setTimeout(() => alert(`✈️ Прибыли: ${arrived.join(', ')}`), 100);
+    }
   }
 };
