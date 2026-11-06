@@ -6,24 +6,24 @@ Apps.garage = {
       <div class="header"><span class="back" onclick="UI.back()">←</span><h2>Гараж (${g.length})</h2></div>
       ${g.map((c,i) => `
         <div class="card">
-          <h3>${c.icon} ${c.name}</h3>
+          <h3>${c.icon} ${c.name} ${c.registered?'<span class="good" style="font-size:11px">✓ на учёте</span>':'<span class="defect" style="font-size:11px">⚠ не на учёте</span>'}</h3>
           <div>Куплено: ${Game.fmt(c.price)} · Рынок: ${Game.fmt(c.market + (c.tunings||[]).reduce((s,t)=>s+t.bonus,0))}</div>
           ${c.number?`<div>🔢 ${c.number.num} (+${Game.fmt(c.number.price)})</div>`:''}
           ${c.defects.length?c.defects.map(d=>`<div class="defect">⚠ ${d}</div>`).join(''):'<div class="good">✓ Исправна</div>'}
           ${(c.tunings||[]).length?`<div class="good">🔧 ${c.tunings.map(t=>t.name).join(', ')}</div>`:''}
           <div class="btn-row">
-            ${c.defects.length?`<button class="gray" onclick="Apps.garage.repair(${i})">Ремонт (${Game.fmt(c.defects.length*15000)})</button>`:''}
+            ${c.defects.length?`<button class="gray" onclick="Apps.garage.repair(${i})">Ремонт (${Game.fmt(c.defects.length*25000)})</button>`:''}
             <button class="gray" onclick="Apps.garage.tuneMenu(${i})">🔧 Тюнинг</button>
             <button class="green" onclick="Apps.garage.sell(${i})">Продать</button>
           </div>
-        </div>`).join('') || '<p style="color:#888">Гараж пуст.</p>'}
+        </div>`).join('') || '<p style="color:#888">Гараж пуст. Купи машину на AvtoBuy.</p>'}
     `;
   },
   repair(i) {
     const c = Game.state.garage[i];
-    const cost = c.defects.length * 15000;
+    const cost = c.defects.length * 25000;
     if (!c.defects.length) return alert('Нечего чинить');
-    if (Game.state.money < cost) return alert('Не хватает денег');
+    if (Game.state.money < cost) return alert('Не хватает денег на ремонт');
     Game.state.money -= cost;
     c.defects = [];
     c.market = Math.round(c.market * 0.95);
@@ -62,16 +62,22 @@ Apps.garage = {
   },
   sell(i) {
     const c = Game.state.garage[i];
+    if (!c.registered) {
+      if (!confirm('Машина не на учёте. Продать без учёта = штраф 30 000 ₽. Продолжить?')) return;
+      Game.addFine('Продажа без учёта', 30000);
+    }
     let mp = c.market + (c.tunings||[]).reduce((s,t)=>s+t.bonus,0) + (c.number?c.number.price:0);
     const sellPrice = Math.round(mp * (0.85 + Math.random()*0.2));
-    Game.state.money += sellPrice;
     const spent = c.price + (c.tunings||[]).reduce((s,t)=>s+t.price,0);
-    Game.state.stats.profit += sellPrice - spent;
+    const profit = sellPrice - spent;
+    Game.state.money += sellPrice;
+    const tax = Game.applyTax(profit);
+    Game.state.stats.profit += profit;
     Game.state.stats.sold++;
     Game.state.garage.splice(i, 1);
     Game.addXP(30);
     Game.save(); UI.updateStatus();
     this.render();
-    alert(`Продано за ${Game.fmt(sellPrice)}\nПрофит: ${Game.fmt(sellPrice - spent)}`);
+    alert(`Продано за ${Game.fmt(sellPrice)}\nПрофит: ${Game.fmt(profit)}\n${tax>0?'НДФЛ к уплате: '+Game.fmt(tax)+' (накопилось в ГосBuy)':''}`);
   }
 };
