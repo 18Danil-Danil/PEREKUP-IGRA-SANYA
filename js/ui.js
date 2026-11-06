@@ -4,7 +4,10 @@ const UI = {
     { id:'messages',   name:'Сообщения',    icon:'💬', color:'linear-gradient(135deg,#00e5a0,#008f5f)' },
     { id:'bank',       name:'П-Банк',       icon:'🏦', color:'linear-gradient(135deg,#b366ff,#6b21a8)' },
     { id:'garage',     name:'Гараж',        icon:'🔧', color:'linear-gradient(135deg,#ffb547,#b45309)' },
+    { id:'trade',      name:'Мои объявл.',  icon:'🏷️', color:'linear-gradient(135deg,#00e5a0,#047857)' },
     { id:'jobs',       name:'Работа',       icon:'💼', color:'linear-gradient(135deg,#ffd93d,#a16207)' },
+    { id:'business',   name:'Бизнес',       icon:'🏢', color:'linear-gradient(135deg,#f97316,#7c2d12)' },
+    { id:'race',       name:'Гонки',        icon:'🏁', color:'linear-gradient(135deg,#ef4444,#7f1d1d)' },
     { id:'casino',     name:'Casino',       icon:'🎰', color:'linear-gradient(135deg,#ff5470,#991b1b)' },
     { id:'family',     name:'Родные',       icon:'👨‍👩‍👧', color:'linear-gradient(135deg,#ff6bb3,#831843)' },
     { id:'gosbuy',     name:'ГосBuy',       icon:'🪪', color:'linear-gradient(135deg,#8ba3c7,#1e293b)' },
@@ -15,7 +18,8 @@ const UI = {
     { id:'carImport',  name:'Импорт',       icon:'✈️', color:'linear-gradient(135deg,#3dd8e8,#0369a1)' },
     { id:'realestate', name:'Недвижимость', icon:'🏠', color:'linear-gradient(135deg,#ff9352,#9a3412)' },
     { id:'taxi',       name:'Таксопарк',    icon:'🚕', color:'linear-gradient(135deg,#ffd93d,#d97706)' },
-    { id:'sleep',      name:'Сон',          icon:'💤', color:'linear-gradient(135deg,#8b93ff,#3730a3)' }
+    { id:'sleep',      name:'Сон',          icon:'💤', color:'linear-gradient(135deg,#8b93ff,#3730a3)' },
+    { id:'saves',      name:'Сохранения',   icon:'💾', color:'linear-gradient(135deg,#64748b,#1e293b)' }
   ],
 
   _lastMoney: null,
@@ -33,17 +37,14 @@ const UI = {
     const clockEl = document.getElementById('clock');
     const moneyEl = document.getElementById('money');
     if (!clockEl || !moneyEl) return;
-
     const newVal = Game.state.money;
     moneyEl.textContent = '💰 ' + Game.fmt(newVal);
-
     if (this._lastMoney !== null && this._lastMoney !== newVal) {
       moneyEl.classList.remove('pulse');
       void moneyEl.offsetWidth;
       moneyEl.classList.add('pulse');
     }
     this._lastMoney = newVal;
-
     const h = String(Game.state.hour).padStart(2,'0');
     clockEl.textContent = `День ${Game.state.day}, ${h}:00`;
   },
@@ -51,11 +52,10 @@ const UI = {
   renderHome() {
     const s = document.getElementById('screen');
     s.innerHTML = `<div class="app-grid">` + this.apps.map((a,i) =>
-      `<div class="app-icon" style="animation-delay:${(i*0.035).toFixed(2)}s" onclick="UI.open('${a.id}')">
+      `<div class="app-icon" style="animation-delay:${(i*0.03).toFixed(2)}s" onclick="UI.open('${a.id}')">
         <div class="icon" style="background:${a.color}">${a.icon}</div>
         <span>${a.name}</span>
       </div>`).join('') + `</div>`;
-
     const dock = document.getElementById('dock');
     dock.innerHTML = ['avtobuy','messages','bank','profile'].map(id => {
       const a = this.apps.find(x => x.id === id);
@@ -86,7 +86,6 @@ const UI = {
     this.updateStatus();
   },
 
-  // === Анимация смены экрана при каждом изменении innerHTML ===
   _installScreenObserver() {
     const s = document.getElementById('screen');
     if (!s) return;
@@ -98,7 +97,6 @@ const UI = {
     observer.observe(s, { childList: true });
   },
 
-  // === Ripple на кнопках ===
   _installRipple() {
     document.addEventListener('pointerdown', (e) => {
       const btn = e.target.closest('button');
@@ -113,30 +111,23 @@ const UI = {
     }, { passive:true });
   },
 
-  // === Toast-уведомления (мягче alert'ов) ===
   _installToast() {
     const style = document.createElement('style');
     style.textContent = `
-      .toast-wrap {
-        position:fixed; top:24px; left:50%; transform:translateX(-50%);
+      .toast-wrap { position:fixed; top:24px; left:50%; transform:translateX(-50%);
         z-index:9999; display:flex; flex-direction:column; gap:8px;
-        pointer-events:none; width:calc(100% - 40px); max-width:380px;
-      }
-      .toast {
-        padding:12px 18px; border-radius:14px; font-size:14px; font-weight:600;
+        pointer-events:none; width:calc(100% - 40px); max-width:380px; }
+      .toast { padding:12px 18px; border-radius:14px; font-size:14px; font-weight:600;
         color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.5);
         animation:toastIn .35s cubic-bezier(.16,1,.3,1);
         backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-        border:1px solid rgba(255,255,255,.15);
-      }
+        border:1px solid rgba(255,255,255,.15); }
       .toast.green { background:linear-gradient(135deg,rgba(0,229,160,.9),rgba(0,168,116,.9)); }
       .toast.red   { background:linear-gradient(135deg,rgba(255,84,112,.9),rgba(196,30,47,.9)); }
       .toast.gold  { background:linear-gradient(135deg,rgba(255,205,60,.95),rgba(224,168,0,.95)); color:#1a1a2e; }
       .toast.info  { background:linear-gradient(135deg,rgba(124,92,255,.9),rgba(90,63,232,.9)); }
-      @keyframes toastIn {
-        from { opacity:0; transform:translateY(-12px) scale(.95); }
-        to   { opacity:1; transform:translateY(0)    scale(1); }
-      }
+      @keyframes toastIn { from { opacity:0; transform:translateY(-12px) scale(.95); }
+        to { opacity:1; transform:translateY(0) scale(1); } }
     `;
     document.head.appendChild(style);
     let wrap = document.createElement('div');
