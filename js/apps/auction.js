@@ -3,7 +3,7 @@ Apps.auction = {
     const s = document.getElementById('screen');
     const lots = Game.state.auctionLots || [];
     s.innerHTML = `
-      <div class="header"><span class="back" onclick="UI.back()">←</span><h2>Аукцион 🏦</h2></div>
+      <div class="header"><span class="back" onclick="UI.back()">←</span><h2>Аукцион 🏛️</h2></div>
 
       <div class="card" style="background:linear-gradient(135deg,rgba(20,184,166,.2),rgba(15,118,110,.2))">
         <h3>🚗 Лоты</h3>
@@ -96,6 +96,7 @@ Apps.auction = {
   tick() {
     if (!Game.state.auctionLots) return;
     Game.state.auctionLots.forEach(l => l.hoursLeft--);
+    const results = [];
     Game.state.auctionLots = Game.state.auctionLots.filter(l => {
       if (l.hoursLeft <= 0) {
         if (l.lastBidder === 'player') {
@@ -104,14 +105,17 @@ Apps.auction = {
             price: l.currentBid, market: l.market,
             defects: [], hiddenDefects: [], inspected:true,
             tunings: [], year: 2015, mileage: 30000,
-            number: null, sold:false
+            number: null, sold:false, registered:false
           });
-          setTimeout(() => alert(`🏆 Победа на аукционе: ${l.name} за ${Game.fmt(l.currentBid)}`), 100);
+          results.push(l.name);
         }
         return false;
       }
       return true;
     });
+    if (results.length) {
+      setTimeout(() => alert(`🏆 Победа на аукционе: ${results.join(', ')}`), 100);
+    }
     if (Game.state.auctionLots.length < 3 && Math.random() < 0.5) this.spawnLot();
   }
 };
