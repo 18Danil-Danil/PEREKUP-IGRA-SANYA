@@ -1,38 +1,40 @@
-/* ====== Константы игры и реестр приложений ====== */
+/* ====== Константы игры v3.0 ====== */
 
 const Apps = {};
 
+/* Реальные цены на авто (новые: 2024, б/у: 2005-2020) */
 const CAR_DB = [
-  { name:"ВАЗ 2107", price:80000, market:120000, icon:"🚗" },
-  { name:"ВАЗ 2110", price:150000, market:220000, icon:"🚙" },
-  { name:"Приора", price:250000, market:380000, icon:"🚘" },
-  { name:"Лада Гранта", price:350000, market:500000, icon:"🚗" },
-  { name:"Kia Rio", price:450000, market:650000, icon:"🚗" },
-  { name:"Hyundai Solaris", price:500000, market:720000, icon:"🚙" },
-  { name:"Nissan Qashqai", price:900000, market:1300000, icon:"🚙" },
-  { name:"Toyota Camry", price:1200000, market:1700000, icon:"🚘" },
-  { name:"BMW 5 серии", price:1800000, market:2500000, icon:"🏎" },
-  { name:"Mercedes E-класс", price:2200000, market:3000000, icon:"🏎" },
-  { name:"Audi A6", price:2000000, market:2800000, icon:"🏎" },
-  { name:"Lexus RX", price:2500000, market:3400000, icon:"🚙" },
-  { name:"Porsche Cayenne", price:3500000, market:4500000, icon:"🏎" },
-  { name:"Tesla Model 3", price:3000000, market:4000000, icon:"⚡" },
-  { name:"УАЗ Патриот", price:800000, market:1100000, icon:"🚙" },
-  { name:"Lada Vesta", price:600000, market:850000, icon:"🚗" },
-  { name:"Skoda Octavia", price:1100000, market:1600000, icon:"🚗" },
-  { name:"VW Polo", price:550000, market:780000, icon:"🚗" },
-  { name:"Renault Logan", price:400000, market:550000, icon:"🚗" },
-  { name:"Ford Focus", price:700000, market:1000000, icon:"🚗" }
+  { name:"Комета 2107",     price:70000,   market:110000,  icon:"🚗" },
+  { name:"Комета 2110",     price:130000,  market:210000,  icon:"🚙" },
+  { name:"Комета Спорт",    price:230000,  market:360000,  icon:"🚘" },
+  { name:"Родник Грант",    price:420000,  market:580000,  icon:"🚗" },
+  { name:"Kanto Rio",       price:580000,  market:850000,  icon:"🚗" },
+  { name:"Hyon Sol",        price:620000,  market:920000,  icon:"🚙" },
+  { name:"Niksha Kashkai",  price:1050000, market:1450000, icon:"🚙" },
+  { name:"Toreta Kamri",    price:1400000, market:2000000, icon:"🚘" },
+  { name:"BMR 5",           price:2100000, market:2900000, icon:"🏎" },
+  { name:"Meridian E",      price:2400000, market:3300000, icon:"🏎" },
+  { name:"Aurum A6",        price:2200000, market:3000000, icon:"🏎" },
+  { name:"Luxor RX",        price:2700000, market:3700000, icon:"🚙" },
+  { name:"Porscha Kaen",    price:4200000, market:5800000, icon:"🏎" },
+  { name:"Volt Model 3",    price:3100000, market:4200000, icon:"⚡" },
+  { name:"Гранит Патриот",  price:1050000, market:1450000, icon:"🚙" },
+  { name:"Родник Веста",    price:850000,  market:1150000, icon:"🚗" },
+  { name:"Shkala Oktav",    price:1300000, market:1750000, icon:"🚗" },
+  { name:"Falkon Polo",     price:680000,  market:950000,  icon:"🚗" },
+  { name:"Rena Logan",      price:490000,  market:700000,  icon:"🚗" },
+  { name:"Fokus",           price:780000,  market:1050000, icon:"🚗" }
 ];
 
 const DEFECTS_VISIBLE = [
   "Царапина на бампере", "Битый фонарь", "Потёртый салон",
-  "Не работает кондиционер", "Мятая дверь"
+  "Не работает кондиционер", "Мятая дверь", "Скрип тормозов"
 ];
 
 const DEFECTS_HIDDEN = [
   "Шпаклёвка на крыле", "Скрученный пробег", "Течь масла",
-  "Стучит подвеска", "Скрытая коррозия", "Заменённый кузов"
+  "Стучит подвеска", "Скрытая коррозия", "Заменённый кузов",
+  "Убитая коробка", "Провёрнутые вкладыши"
 ];
 
 const TUNING = [
@@ -60,56 +62,96 @@ const NUMBERS_POOL = [
   { num:"Е777КХ", region:77, price:500000 },
   { num:"О005ОК", region:99, price:200000 },
   { num:"Х555ХХ", region:77, price:350000 },
-  { num:"АМР", region:77, price:800000 },
-  { num:"ЕКХ", region:77, price:900000 },
+  { num:"СТЛ",    region:77, price:800000 },
+  { num:"ЛЮК",    region:77, price:900000 },
   { num:"Т001ТТ", region:77, price:250000 },
   { num:"Р005ОК", region:99, price:300000 },
-  { num:"123", region:716, price:100000 },
-  { num:"911", region:99, price:180000 },
-  { num:"228", region:99, price:90000 },
-  { num:"112", region:77, price:70000 },
-  { num:"102", region:77, price:60000 },
-  { num:"314", region:99, price:50000 }
+  { num:"123",    region:716, price:100000 },
+  { num:"911",    region:99, price:180000 },
+  { num:"228",    region:99, price:90000 },
+  { num:"112",    region:77, price:70000 },
+  { num:"102",    region:77, price:60000 },
+  { num:"314",    region:99, price:50000 }
 ];
 
 const APARTMENTS = [
-  { name:"Студия", price:2000000, rent:15000, icon:"🏢" },
-  { name:"1-комн.", price:3500000, rent:25000, icon:"🏢" },
-  { name:"2-комн.", price:5500000, rent:40000, icon:"🏬" },
-  { name:"3-комн.", price:8000000, rent:60000, icon:"🏬" },
-  { name:"Загородный дом", price:15000000, rent:100000, icon:"🏡" }
+  { name:"Студия", price:3500000, rent:25000, icon:"🏢" },
+  { name:"1-комн.", price:5500000, rent:40000, icon:"🏢" },
+  { name:"2-комн.", price:8500000, rent:60000, icon:"🏬" },
+  { name:"3-комн.", price:13000000, rent:90000, icon:"🏬" },
+  { name:"Загородный дом", price:25000000, rent:150000, icon:"🏡" }
 ];
 
 const TOOLS_SHOP = [
   { id:'thickness', name:'Толщиномер', price:30000, icon:'📏', desc:'Показывает шпаклёвку и коррозию' },
   { id:'obd', name:'OBD-сканер', price:50000, icon:'🔌', desc:'Скрытые дефекты и пробег' },
-  { id:'mileage', name:'Корректор пробега', price:80000, icon:'⏮', desc:'Задел на будущее' }
+  { id:'mileage', name:'Корректор пробега', price:80000, icon:'⏮', desc:'Скрывает пробег при продаже' }
 ];
-/* ===== Аукцион ===== */
+
 const AUCTION_CARS = [
-  { name:"Toyota Supra",    price:3000000, market:4500000, icon:"🏎" },
-  { name:"Nissan Skyline",  price:2500000, market:4000000, icon:"🏎" },
-  { name:"Honda NSX",       price:2800000, market:4200000, icon:"🏎" },
-  { name:"Mazda RX-7",      price:1800000, market:2800000, icon:"🏎" },
-  { name:"Mitsubishi Evo",  price:1500000, market:2200000, icon:"🚙" },
-  { name:"Subaru WRX",      price:1400000, market:2100000, icon:"🚙" },
-  { name:"BMW M3 E46",      price:2500000, market:3500000, icon:"🏎" },
-  { name:"Mercedes AMG GT", price:5500000, market:8000000, icon:"🏎" }
+  { name:"Toreta Supra",   price:2800000, market:4500000, icon:"🏎" },
+  { name:"Niksha Skyline", price:2400000, market:4000000, icon:"🏎" },
+  { name:"Hondo NSX",      price:3200000, market:5200000, icon:"🏎" },
+  { name:"Mazuka RX-7",    price:1900000, market:3000000, icon:"🏎" },
+  { name:"Mitsui Evo",     price:1600000, market:2500000, icon:"🚙" },
+  { name:"Sabaru WRX",     price:1400000, market:2200000, icon:"🚙" },
+  { name:"BMR M3",         price:2600000, market:4000000, icon:"🏎" },
+  { name:"Meridian GT",    price:5800000, market:8500000, icon:"🏎" }
 ];
 
 const CONTAINER_CONTENTS = [
   { name:"Хлам",              value:0,       icon:"🗑" },
-  { name:"Запчасти",          value:200000,  icon:"🔩" },
-  { name:"Мотоцикл",          value:600000,  icon:"🏍" },
-  { name:"BMW M5",            value:3500000, icon:"🏎" },
-  { name:"Toyota LC",         value:4000000, icon:"🚙" },
-  { name:"Porsche 911",       value:6000000, icon:"🏎" }
+  { name:"Запчасти",          value:300000,  icon:"🔩" },
+  { name:"Мотоцикл",          value:700000,  icon:"🏍" },
+  { name:"BMR M5",            value:3500000, icon:"🏎" },
+  { name:"Toreta LC",         value:4200000, icon:"🚙" },
+  { name:"Porscha 911",       value:6500000, icon:"🏎" }
 ];
 
-/* ===== Импорт ===== */
 const IMPORT_COUNTRIES = [
   { id:'japan', name:'🇯🇵 Япония', deliveryDays:5, fee:0.15 },
   { id:'korea', name:'🇰🇷 Корея',  deliveryDays:4, fee:0.12 },
   { id:'china', name:'🇨🇳 Китай',  deliveryDays:7, fee:0.10 },
   { id:'uae',   name:'🇦🇪 ОАЭ',    deliveryDays:6, fee:0.20 }
 ];
+
+/* ===== РАБОТЫ ===== */
+const JOBS = [
+  { id:'crane',     name:'🏗 Крановщик',    desc:'Тайминг · 5 попыток × 2 000 ₽',     income:10000 },
+  { id:'wash',      name:'🧽 Мойка машин',  desc:'Кликер · 8 сек · 500 ₽/клик',         income:'~4000' },
+  { id:'courier',   name:'🚚 Курьер',       desc:'5 заказов × 3 000 ₽',                 income:15000 },
+  { id:'build',     name:'👷 Стройка',      desc:'10 кликов за 5 сек × 500 ₽',          income:5000 },
+  { id:'truck',     name:'🚛 Дальнобойщик', desc:'3 дорожных события · выбор',          income:20000 }
+];
+
+/* ===== ГОСБУЙ ===== */
+const GOV_FEES = {
+  passport: 0,
+  license: 5000,
+  pts: 1000,        // на каждую машину при покупке
+  registration: 2000, // постановка на учёт
+  taxRate: 0.13,    // НДФЛ с прибыли
+  taxPenaltyPerDay: 0.05
+};
+
+/* ===== СЕМЬЯ (Родные 2.0) ===== */
+const FAMILY_MEMBERS = [
+  { key:'mom',    name:'👩 Мама',      birthDay:[8,14],  gift:25000 },
+  { key:'grandma',name:'👵 Бабушка',   birthDay:[3,22],  gift:15000 },
+  { key:'grandpa',name:'👴 Дедушка',   birthDay:[11,5],  gift:20000 }
+];
+
+const FAMILY_EVENTS = {
+  birthday: { mom:'🎂 У мамы день рождения!', grandma:'🎂 У бабушки день рождения!', grandpa:'🎂 У дедушки день рождения!' },
+  newyear:  '🎄 С Новым годом!',
+  march8:   '🌷 С 8 Марта!',
+  feb23:    '🎖 С 23 Февраля!'
+};
+
+/* Темы для разговоров — рандомные реплики */
+const FAMILY_REPLIES = {
+  how:      ['Всё хорошо, а у тебя?', 'Потихоньку, на даче копаюсь', 'Скучаю по тебе!', 'Нормально, работаю'],
+  advice:   ['Не бери без осмотра', 'Следи за налогами, а то ГосBuy оштрафует', 'Бери с умом, не гонись за дешёвкой', 'Ты бы машину купил, а не в казино играл'],
+  brag:     ['Молодец! Горжусь!', 'Ого, серьёзная тачка!', 'Вот это по-нашему!'],
+  hard:     ['Всё наладится, сынок', 'Ты сильный, справишься', 'Держись, я в тебя верю']
+};
