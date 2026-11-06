@@ -36,6 +36,7 @@ const Game = {
     if (!s.auctionNextId) s.auctionNextId = 1;
     if (!s.visa) s.visa = false;
     if (!s.imports) s.imports = [];
+    if (s.casinoBet === undefined) s.casinoBet = 10000;
     this.save();
   },
 
@@ -47,6 +48,7 @@ const Game = {
       tools:{thickness:false, obd:false, mileage:false},
       numbersOwned:[], apartments:[], taxiDrivers:[],
       auctionLots:[], auctionNextId:1, visa:false, imports:[],
+      casinoBet: 10000,
       family:{
         mom:{trust:50,lastGift:0}, grandma:{trust:50,lastGift:0}, grandpa:{trust:50,lastGift:0}
       },
@@ -78,7 +80,7 @@ const Game = {
           if (car) car.defects.push("ДТП в такси");
         }
       });
-      if (window.Apps && Apps.import && Apps.import.tick) Apps.import.tick();
+      if (window.Apps && Apps.carImport && Apps.carImport.tick) Apps.carImport.tick();
     }
     if (window.Apps && Apps.auction && Apps.auction.tick) Apps.auction.tick();
     this.save();
