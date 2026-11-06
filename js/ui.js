@@ -8,8 +8,8 @@ const UI = {
     { id:'profile',    name:'Профиль',       icon:'👤', color:'linear-gradient(135deg,#64748b,#334155)' },
     { id:'shop',       name:'Магазин',       icon:'🛒', color:'linear-gradient(135deg,#06b6d4,#0e7490)' },
     { id:'numbers',    name:'Номера',        icon:'🔢', color:'linear-gradient(135deg,#eab308,#854d0e)' },
-    { id:'auction',    name:'Аукцион',       icon:'🏦', color:'linear-gradient(135deg,#14b8a6,#115e59)' },
-    { id:'import',     name:'Импорт',        icon:'✈️', color:'linear-gradient(135deg,#06b6d4,#0369a1)' },
+    { id:'auction',    name:'Аукцион',       icon:'🏛️', color:'linear-gradient(135deg,#14b8a6,#115e59)' },
+    { id:'carImport',  name:'Импорт',        icon:'✈️', color:'linear-gradient(135deg,#06b6d4,#0369a1)' },
     { id:'realestate', name:'Недвижимость',  icon:'🏠', color:'linear-gradient(135deg,#f97316,#9a3412)' },
     { id:'taxi',       name:'Таксопарк',     icon:'🚕', color:'linear-gradient(135deg,#fbbf24,#d97706)' },
     { id:'sleep',      name:'Сон',           icon:'💤', color:'linear-gradient(135deg,#6366f1,#3730a3)' }
@@ -41,8 +41,33 @@ const UI = {
     }).join('');
   },
 
-  open(id) { if (Apps[id] && Apps[id].render) Apps[id].render(); },
-  back() { this.renderHome(); this.updateStatus(); }
+  open(id) {
+    // при переходе между приложениями — гасим активный краш
+    if (id !== 'casino' && Apps.casino && Apps.casino.crashState && Apps.casino.crashState.interval) {
+      clearInterval(Apps.casino.crashState.interval);
+      Apps.casino.crashState.active = false;
+    }
+    try {
+      if (Apps[id] && Apps[id].render) {
+        Apps[id].render();
+      } else {
+        console.error('App not found:', id);
+        alert('Приложение "' + id + '" не загружено.\nПроверьте index.html — там должен быть <script src="js/apps/' + id + '.js">');
+      }
+    } catch (e) {
+      console.error('Render error in app', id, e);
+      alert('Ошибка в приложении "' + id + '":\n' + e.message);
+    }
+  },
+
+  back() {
+    if (Apps.casino && Apps.casino.crashState && Apps.casino.crashState.interval) {
+      clearInterval(Apps.casino.crashState.interval);
+      Apps.casino.crashState.active = false;
+    }
+    this.renderHome();
+    this.updateStatus();
+  }
 };
 
 (function boot() {
