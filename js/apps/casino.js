@@ -3,10 +3,35 @@ Apps.casino = {
   crashState: { active:false, bet:0, mult:1, crashAt:0, interval:null },
   bjState: { active:false, bet:0, playerHand:[], dealerHand:[], deck:[] },
 
+  getBet() { return Game.state.casinoBet || 10000; },
+  setBet(v) {
+    let n = parseInt(v);
+    if (isNaN(n) || n < 100) n = 100;
+    if (n > 100000000) n = 100000000;
+    Game.state.casinoBet = n;
+    Game.save();
+    this.render();
+  },
+
   render() {
+    const bet = this.getBet();
     const s = document.getElementById('screen');
     s.innerHTML = `
       <div class="header"><span class="back" onclick="UI.back()">←</span><h2>Casino 🎰</h2></div>
+
+      <div class="card" style="background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(99,102,241,.2));border-color:rgba(168,85,247,.4)">
+        <h3>💵 Ставка</h3>
+        <input type="number" value="${bet}" min="100" step="100"
+          onchange="Apps.casino.setBet(this.value)"
+          style="margin-bottom:8px;font-size:18px;font-weight:700;text-align:center">
+        <div class="btn-row">
+          <button class="gray" onclick="Apps.casino.setBet(1000)">1K</button>
+          <button class="gray" onclick="Apps.casino.setBet(10000)">10K</button>
+          <button class="gray" onclick="Apps.casino.setBet(100000)">100K</button>
+          <button class="gray" onclick="Apps.casino.setBet(1000000)">1M</button>
+          <button class="gray" onclick="Apps.casino.setBet(${Game.state.money})">ВСЁ</button>
+        </div>
+      </div>
 
       <div class="card" style="background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(168,85,247,.18))">
         <h3>🚀 Краш</h3>
@@ -17,13 +42,13 @@ Apps.casino = {
               background-clip:text;margin:12px 0">×${this.crashState.mult.toFixed(2)}</div>
              <button class="gold" style="width:100%" onclick="Apps.casino.crashCashout()">Забрать ${Game.fmt(Math.round(this.crashState.bet*this.crashState.mult))}</button>`
           : `<div style="color:#888;font-size:12px;margin-bottom:8px">Множитель растёт. Успей забрать до краша!</div>
-             <button class="red" style="width:100%" onclick="Apps.casino.crashStart()">Старт (10 000 ₽)</button>`}
+             <button class="red" style="width:100%" onclick="Apps.casino.crashStart()">Старт (${Game.fmt(bet)})</button>`}
       </div>
 
       <div class="card">
         <h3>🎰 Слоты</h3>
-        <div style="font-size:12px;color:#888;margin-bottom:8px">Ставка 10 000 ₽</div>
-        <button onclick="Apps.casino.slots()">Крутить</button>
+        <div style="font-size:12px;color:#888;margin-bottom:8px">Три семёрки = ×10</div>
+        <button onclick="Apps.casino.slots()">Крутить (${Game.fmt(bet)})</button>
       </div>
 
       <div class="card">
@@ -37,24 +62,24 @@ Apps.casino = {
               <button class="green" onclick="Apps.casino.bjHit()">Взять</button>
               <button class="gray" onclick="Apps.casino.bjStand()">Хватит</button>
              </div>`
-          : `<div style="color:#888;font-size:12px;margin-bottom:8px">Ставка 10 000 ₽ · Блэкджек ×2.5</div>
-             <button onclick="Apps.casino.bjStart()">Играть</button>`}
+          : `<div style="color:#888;font-size:12px;margin-bottom:8px">Блэкджек ×2.5 · победа ×2</div>
+             <button onclick="Apps.casino.bjStart()">Играть (${Game.fmt(bet)})</button>`}
       </div>
 
       <div class="card">
         <h3>🎡 Рулетка</h3>
-        <div style="color:#888;font-size:12px;margin-bottom:8px">Ставка 10 000 ₽</div>
+        <div style="color:#888;font-size:12px;margin-bottom:8px">Красное/чёрное ×2 · Зеро ×36</div>
         <div class="btn-row">
-          <button class="red" onclick="Apps.casino.roulette('red')">Красное ×2</button>
-          <button class="gray" onclick="Apps.casino.roulette('black')">Чёрное ×2</button>
-          <button class="gold" onclick="Apps.casino.roulette('zero')">Зеро ×36</button>
+          <button class="red" onclick="Apps.casino.roulette('red')">Красное</button>
+          <button class="gray" onclick="Apps.casino.roulette('black')">Чёрное</button>
+          <button class="gold" onclick="Apps.casino.roulette('zero')">Зеро</button>
         </div>
       </div>
 
       <div class="card">
         <h3>🎁 Кейс Перекупа</h3>
-        <div style="color:#888;font-size:12px;margin-bottom:8px">50 000 ₽ · шанс на джекпот</div>
-        <button class="green" onclick="Apps.casino.caseOpen()">Открыть</button>
+        <div style="color:#888;font-size:12px;margin-bottom:8px">Джекпот ×10 · редко</div>
+        <button class="green" onclick="Apps.casino.caseOpen()">Открыть (${Game.fmt(bet)})</button>
       </div>
 
       <div class="card">
@@ -69,18 +94,19 @@ Apps.casino = {
               }).join('')}
              </div>
              <button class="green" style="width:100%;margin-top:8px" onclick="Apps.casino.minesCashout()">Забрать ${Game.fmt(Math.round(this.minesState.bet*this.minesState.mult))}</button>`
-          : `<button onclick="Apps.casino.minesStart()">Начать (10 000 ₽)</button>`}
+          : `<button onclick="Apps.casino.minesStart()">Начать (${Game.fmt(bet)})</button>`}
       </div>
     `;
   },
 
   /* ===== Краш ===== */
   crashStart() {
-    if (Game.state.money < 10000) return alert('Мало денег');
     if (this.crashState.active) return;
-    Game.state.money -= 10000;
+    const bet = this.getBet();
+    if (Game.state.money < bet) return alert('Мало денег');
+    Game.state.money -= bet;
     const crashAt = 1.1 + Math.pow(Math.random(),2) * 9;
-    this.crashState = { active:true, bet:10000, mult:1, crashAt, interval:null };
+    this.crashState = { active:true, bet, mult:1, crashAt, interval:null };
     Game.save(); UI.updateStatus();
     this.crashState.interval = setInterval(() => {
       if (!this.crashState.active) return;
@@ -111,13 +137,15 @@ Apps.casino = {
 
   /* ===== Слоты ===== */
   slots() {
-    if (Game.state.money < 10000) return alert('Мало денег');
-    Game.state.money -= 10000;
+    const bet = this.getBet();
+    if (Game.state.money < bet) return alert('Мало денег');
+    Game.state.money -= bet;
     const r = () => Math.floor(Math.random()*5);
     const [a,b,c] = [r(),r(),r()];
-    let win = 0;
-    if (a===b&&b===c) win = 100000;
-    else if (a===b||b===c||a===c) win = 20000;
+    let mult = 0;
+    if (a===b&&b===c) mult = 10;
+    else if (a===b||b===c||a===c) mult = 2;
+    const win = bet * mult;
     Game.state.money += win;
     Game.save(); UI.updateStatus(); this.render();
     alert(`🎰 ${a}${b}${c}\n${win?'Выигрыш: '+Game.fmt(win):'Проигрыш'}`);
@@ -141,10 +169,11 @@ Apps.casino = {
     return sum;
   },
   bjStart() {
-    if (Game.state.money < 10000) return alert('Мало денег');
-    Game.state.money -= 10000;
+    const bet = this.getBet();
+    if (Game.state.money < bet) return alert('Мало денег');
+    Game.state.money -= bet;
     const deck = this.makeDeck();
-    this.bjState = { active:true, bet:10000,
+    this.bjState = { active:true, bet,
       playerHand:[deck.pop(),deck.pop()],
       dealerHand:[deck.pop(),deck.pop()], deck };
     Game.save(); UI.updateStatus();
@@ -185,15 +214,17 @@ Apps.casino = {
   },
 
   /* ===== Рулетка ===== */
-  roulette(bet) {
-    if (Game.state.money < 10000) return alert('Мало денег');
-    Game.state.money -= 10000;
+  roulette(betType) {
+    const bet = this.getBet();
+    if (Game.state.money < bet) return alert('Мало денег');
+    Game.state.money -= bet;
     const num = Math.floor(Math.random()*37);
     const reds = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
-    let win = 0;
-    if (bet==='red' && reds.includes(num)) win = 20000;
-    else if (bet==='black' && num !== 0 && !reds.includes(num)) win = 20000;
-    else if (bet==='zero' && num === 0) win = 360000;
+    let mult = 0;
+    if (betType==='red' && reds.includes(num)) mult = 2;
+    else if (betType==='black' && num !== 0 && !reds.includes(num)) mult = 2;
+    else if (betType==='zero' && num === 0) mult = 36;
+    const win = bet * mult;
     Game.state.money += win;
     Game.save(); UI.updateStatus(); this.render();
     alert(`🎡 Выпало: ${num}\n${win?'Выигрыш: '+Game.fmt(win):'Проигрыш'}`);
@@ -201,28 +232,31 @@ Apps.casino = {
 
   /* ===== Кейс ===== */
   caseOpen() {
-    if (Game.state.money < 50000) return alert('Мало денег');
-    Game.state.money -= 50000;
+    const bet = this.getBet();
+    if (Game.state.money < bet) return alert('Мало денег');
+    Game.state.money -= bet;
     const r = Math.random();
-    let win = 0;
-    if (r < 0.02) win = 500000;
-    else if (r < 0.15) win = 100000;
-    else if (r < 0.5) win = 60000;
+    let mult = 0;
+    if (r < 0.02) mult = 10;
+    else if (r < 0.15) mult = 2;
+    else if (r < 0.5) mult = 1.2;
+    const win = Math.round(bet * mult);
     Game.state.money += win;
     Game.save(); UI.updateStatus(); this.render();
-    alert(win>50000?`🎁 Джекпот! ${Game.fmt(win)}`:`🎁 ${Game.fmt(win)}`);
+    alert(mult >= 10 ? `🎁 Джекпот! ${Game.fmt(win)}` : `🎁 ${Game.fmt(win)}`);
   },
 
   /* ===== Мины ===== */
   minesStart() {
-    if (Game.state.money < 10000) return alert('Мало денег');
-    Game.state.money -= 10000;
+    const bet = this.getBet();
+    if (Game.state.money < bet) return alert('Мало денег');
+    Game.state.money -= bet;
     const mines = [];
     while (mines.length < 5) {
       const m = Math.floor(Math.random()*25);
       if (!mines.includes(m)) mines.push(m);
     }
-    this.minesState = { active:true, bet:10000, mines, revealed:[], mult:1 };
+    this.minesState = { active:true, bet, mines, revealed:[], mult:1 };
     Game.save(); UI.updateStatus(); this.render();
   },
   minesClick(i) {
