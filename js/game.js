@@ -3,6 +3,7 @@ const Game = {
   SAVE_KEY_PREFIX: 'perekup_slot_',
   ACTIVE_SLOT_KEY: 'perekup_active_slot',
   state: null,
+  _achTimer: null,
 
   get activeSlot() {
     const v = parseInt(localStorage.getItem(this.ACTIVE_SLOT_KEY) || '1');
@@ -70,6 +71,8 @@ const Game = {
     // v3.3
     if (!s.notifications) s.notifications = [];
     if (s.tutorialShown === undefined) s.tutorialShown = false;
+    // v3.4
+    if (!s.unlockedAchievements) s.unlockedAchievements = [];
     this.save();
   },
 
@@ -92,6 +95,7 @@ const Game = {
       activeTrade: null,
       notifications: [],
       tutorialShown: false,
+      unlockedAchievements: [],
       family:{
         mom:     { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0, needCongrats:false, lastBirthdayDay:0, lastVisit:0, chatLog:[] },
         grandma: { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0, needCongrats:false, lastBirthdayDay:0, lastVisit:0, chatLog:[] },
@@ -149,9 +153,16 @@ const Game = {
       void el.offsetWidth;
       el.classList.add('flash');
     }
+    // проверка достижений — с throttle
+    if (this._achTimer) return;
+    this._achTimer = setTimeout(() => {
+      this._achTimer = null;
+      if (window.Apps && Apps.achievements && Apps.achievements.checkNew) {
+        try { Apps.achievements.checkNew(); } catch(e) { console.warn('Ach check:', e); }
+      }
+    }, 500);
   },
 
-  // Пуш уведомления в колокольчик
   pushNotif(icon, text) {
     if (!this.state.notifications) this.state.notifications = [];
     this.state.notifications.push({
