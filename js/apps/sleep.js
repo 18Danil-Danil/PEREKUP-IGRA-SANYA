@@ -49,7 +49,9 @@ Apps.sleep = {
     Game.spawnListings(2);
     const rent = Game.state.apartments.reduce((s,a)=>s+a.rent,0);
     const taxi = Game.state.taxiDrivers.reduce((s,d)=>s+d.income,0);
-    const biz = Object.values(Game.state.businesses || {}).filter(Boolean).reduce((s,b)=>s+b.dailyIncome,0);
+    const biz = Object.entries(Game.state.businesses || {})
+      .filter(([,b])=>b)
+      .reduce((sum, [id, b]) => sum + Game.calcBizIncome(id, b), 0);
     Game.state.money += rent + taxi + biz;
     Game.state.taxiDrivers.forEach(d => {
       if (Math.random() < 0.15) {
@@ -57,7 +59,6 @@ Apps.sleep = {
         if (car) car.defects.push("ДТП в такси");
       }
     });
-    // 🔑 Ключевой фикс: спавним покупателей как в Game.tick()
     if (window.Apps && Apps.trade && Apps.trade.spawnBuyers) Apps.trade.spawnBuyers();
     if (Game.state.day - Game.state.lastTaxDay >= 7 && Game.state.taxDebt > 0) {
       Game.state.taxDebt = Math.round(Game.state.taxDebt * (1 + GOV_FEES.taxPenaltyPerDay));
@@ -66,6 +67,7 @@ Apps.sleep = {
     if (window.Apps && Apps.carImport && Apps.carImport.tick) Apps.carImport.tick();
     if (window.Apps && Apps.family && Apps.family.checkBirthdays) Apps.family.checkBirthdays();
     if (window.Apps && Apps.auction && Apps.auction.tick) Apps.auction.tick();
+    Game.refillNumbersMarket();
     Game.save(); UI.updateStatus();
     const passive = rent + taxi + biz;
     if (passive > 0) UI.toast(`День ${Game.state.day} · +${Game.fmt(passive)} с пассива`, 'green');
@@ -85,8 +87,5 @@ Apps.sleep = {
     UI.back();
   },
 
-  skipDay() {
-    this.nextDay();
-    UI.back();
-  }
+  skipDay() { this.nextDay(); UI.back(); }
 };
