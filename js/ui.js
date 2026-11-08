@@ -39,6 +39,7 @@ const UI = {
     this._installRipple();
     this._installScreenObserver();
     this._installToast();
+    this._startHourProgress();
 
     if (!Game.state.tutorialShown) {
       setTimeout(() => this.open('tutorial'), 400);
@@ -64,6 +65,16 @@ const UI = {
         display:none; box-shadow:0 0 8px rgba(255,84,112,.6);
       }
       #bell-badge.show { display:inline-block; }
+      #hour-bar {
+        height:2px; background:rgba(150,150,230,.1);
+        position:relative; z-index:19;
+      }
+      #hour-progress {
+        height:100%; width:0%;
+        background:linear-gradient(90deg,#7c5cff,#a28bff);
+        transition:width 1s linear;
+        box-shadow:0 0 8px rgba(124,92,255,.6);
+      }
     `;
     document.head.appendChild(style);
 
@@ -85,6 +96,24 @@ const UI = {
       const money = document.getElementById('money');
       sb.insertBefore(bell, money);
     }
+
+    // Прогресс-бар часа под статусбаром
+    if (!document.getElementById('hour-bar')) {
+      const bar = document.createElement('div');
+      bar.id = 'hour-bar';
+      bar.innerHTML = '<div id="hour-progress"></div>';
+      sb.parentNode.insertBefore(bar, sb.nextSibling);
+    }
+  },
+
+  _startHourProgress() {
+    setInterval(() => {
+      const bar = document.getElementById('hour-progress');
+      if (!bar) return;
+      const elapsed = Date.now() - (Game.lastTickAt || Date.now());
+      const pct = Math.min(100, (elapsed / 60000) * 100);
+      bar.style.width = pct + '%';
+    }, 1000);
   },
 
   updateStatus() {
