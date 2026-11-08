@@ -14,12 +14,17 @@ Apps.achievements = {
     { id:'millionaire',    icon:'💰', name:'Миллионер',           desc:'Накопить 1 000 000 ₽ на балансе',       reward:50000,  check: s => s.money >= 1000000 },
     { id:'number_trade',   icon:'🔢', name:'Номерной магнат',     desc:'Продать 3 номера',                       reward:15000,  check: s => s.stats.numbersSold >= 3 },
     { id:'rep_80',         icon:'⭐', name:'Хорошая репутация',   desc:'Достичь репутации 80',                   reward:40000,  check: s => (s.reputation||0) >= 80 },
-    { id:'auction_win',    icon:'🏛️', name:'Аукционист',         desc:'Победить на аукционе',                   reward:25000,  check: s => (s.garage||[]).length >= 1 && (s.stats.bought||0) >= 1 && (s.stats.bought||0) > 0 },
+    { id:'auction_win',    icon:'🏛️', name:'Аукционист',         desc:'Купить машину на аукционе',              reward:25000,  check: s => (s.stats.bought||0) >= 1 },
     { id:'tools_all',      icon:'🔍', name:'Полный арсенал',     desc:'Купить толщиномер и OBD-сканер',         reward:15000,  check: s => s.tools.thickness && s.tools.obd }
   ],
 
+  /**
+   * Синхронная проверка. Возвращает массив только что разблокированных.
+   * НЕ вызывает Game.save() (это делает вызывающий код), чтобы не было рекурсии.
+   * Награды начисляются, уведомления добавляются в state.notifications.
+   */
   checkNew() {
-    if (!Game.state) return;
+    if (!Game.state) return [];
     if (!Game.state.unlockedAchievements) Game.state.unlockedAchievements = [];
 
     const newly = [];
@@ -34,7 +39,7 @@ Apps.achievements = {
       }
     });
 
-    if (newly.length) {
+    if (newly.length > 0) {
       if (!Game.state.notifications) Game.state.notifications = [];
       newly.forEach(a => {
         Game.state.notifications.push({
@@ -46,13 +51,10 @@ Apps.achievements = {
           read: false
         });
       });
-      Game.save();
-      if (window.UI) {
-        if (UI.updateStatus) UI.updateStatus();
-        if (UI._currentAppId === 'achievements') this.render();
-        else if (UI._currentAppId === 'profile' && Apps.profile && Apps.profile.render) Apps.profile.render();
-      }
+      if (window.UI && UI._currentAppId === 'achievements') this.render();
     }
+
+    return newly;
   },
 
   render() {
