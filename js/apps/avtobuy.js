@@ -58,7 +58,7 @@ Apps.avtobuy = {
     const l = Game.state.listings.find(x => x.id === id);
     if (!l) return;
     const t = Game.state.tools;
-    if (!t.thickness && !t.obd) return alert('Нужен толщиномер или OBD-сканер. Купи в Магазине.');
+    if (!t.thickness && !t.obd) return UI.toast('Нужен толщиномер или OBD-сканер', 'red');
     const keep = [];
     l.hiddenDefects.forEach(d => {
       if (t.thickness && (d.includes('Шпаклёвка') || d.includes('коррозия') || d.includes('кузов'))) keep.push(d);
@@ -66,15 +66,15 @@ Apps.avtobuy = {
     });
     l.hiddenDefects = keep;
     l.inspected = true;
-    alert('Осмотр выполнен. Скрытых дефектов: ' + keep.length);
+    UI.toast('Осмотр выполнен. Скрытых дефектов: ' + keep.length, keep.length > 0 ? 'red' : 'green');
     this.detail(id);
   },
   buy(id) {
     const l = Game.state.listings.find(x => x.id === id);
     if (!l) return;
-    if (!Game.state.hasLicense) return alert('Без прав покупать нельзя. Оформи в ГосBuy.');
+    if (!Game.state.hasLicense) return UI.toast('Без прав покупать нельзя. Оформи в ГосBuy', 'red');
     const total = l.price + GOV_FEES.pts;
-    if (Game.state.money < total) return alert(`Недостаточно! Нужно ${Game.fmt(total)}`);
+    if (Game.state.money < total) return UI.toast(`Недостаточно! Нужно ${Game.fmt(total)}`, 'red');
     Game.state.money -= total;
     l.sold = true;
     l.defects = [...l.defects, ...l.hiddenDefects];
@@ -82,7 +82,7 @@ Apps.avtobuy = {
     Game.state.stats.bought++;
     Game.addXP(20);
     Game.save(); UI.updateStatus();
-    alert(`Куплено: ${l.name} за ${Game.fmt(l.price)}\n\n⚠ Не забудь поставить на учёт в ГосBuy!`);
+    UI.toast(`Куплено: ${l.name} за ${Game.fmt(l.price)}`, 'green', 3200);
     this.render();
   }
 };
