@@ -103,7 +103,7 @@ Apps.casino = {
   crashStart() {
     if (this.crashState.active) return;
     const bet = this.getBet();
-    if (Game.state.money < bet) return alert('Мало денег');
+    if (Game.state.money < bet) return UI.toast('Мало денег', 'red');
     Game.state.money -= bet;
     const crashAt = 1.1 + Math.pow(Math.random(),2) * 9;
     this.crashState = { active:true, bet, mult:1, crashAt, interval:null };
@@ -113,9 +113,10 @@ Apps.casino = {
       this.crashState.mult += 0.02 + this.crashState.mult * 0.008;
       if (this.crashState.mult >= this.crashState.crashAt) {
         clearInterval(this.crashState.interval);
+        const lost = this.crashState.mult;
         this.crashState.active = false;
         Game.save(); UI.updateStatus();
-        alert(`💥 Краш на ×${this.crashState.mult.toFixed(2)}! Ставка потеряна.`);
+        UI.toast(`💥 Краш на ×${lost.toFixed(2)}! Ставка потеряна`, 'red', 3500);
         this.render();
         return;
       }
@@ -131,14 +132,14 @@ Apps.casino = {
     Game.state.money += win;
     this.crashState.active = false;
     Game.save(); UI.updateStatus();
-    alert(`Забрано: ${Game.fmt(win)}`);
+    UI.toast(`Забрано: ${Game.fmt(win)}`, 'gold', 3200);
     this.render();
   },
 
   /* ===== Слоты ===== */
   slots() {
     const bet = this.getBet();
-    if (Game.state.money < bet) return alert('Мало денег');
+    if (Game.state.money < bet) return UI.toast('Мало денег', 'red');
     Game.state.money -= bet;
     const r = () => Math.floor(Math.random()*5);
     const [a,b,c] = [r(),r(),r()];
@@ -148,7 +149,7 @@ Apps.casino = {
     const win = bet * mult;
     Game.state.money += win;
     Game.save(); UI.updateStatus(); this.render();
-    alert(`🎰 ${a}${b}${c}\n${win?'Выигрыш: '+Game.fmt(win):'Проигрыш'}`);
+    UI.toast(win > 0 ? `🎰 ${a}${b}${c} · Выигрыш ${Game.fmt(win)}` : `🎰 ${a}${b}${c} · Проигрыш`, win > 0 ? 'green' : 'red', 3000);
   },
 
   /* ===== Блэкджек ===== */
@@ -170,7 +171,7 @@ Apps.casino = {
   },
   bjStart() {
     const bet = this.getBet();
-    if (Game.state.money < bet) return alert('Мало денег');
+    if (Game.state.money < bet) return UI.toast('Мало денег', 'red');
     Game.state.money -= bet;
     const deck = this.makeDeck();
     this.bjState = { active:true, bet,
@@ -209,14 +210,14 @@ Apps.casino = {
     Game.state.money += win;
     this.bjState.active = false;
     Game.save(); UI.updateStatus();
-    alert(`${msg}${win?' +'+Game.fmt(win):''}`);
+    UI.toast(`${msg}${win?' +'+Game.fmt(win):''}`, win > 0 ? (result === 'push' ? 'info' : 'green') : 'red', 3000);
     this.render();
   },
 
   /* ===== Рулетка ===== */
   roulette(betType) {
     const bet = this.getBet();
-    if (Game.state.money < bet) return alert('Мало денег');
+    if (Game.state.money < bet) return UI.toast('Мало денег', 'red');
     Game.state.money -= bet;
     const num = Math.floor(Math.random()*37);
     const reds = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
@@ -227,13 +228,13 @@ Apps.casino = {
     const win = bet * mult;
     Game.state.money += win;
     Game.save(); UI.updateStatus(); this.render();
-    alert(`🎡 Выпало: ${num}\n${win?'Выигрыш: '+Game.fmt(win):'Проигрыш'}`);
+    UI.toast(win > 0 ? `🎡 ${num} · Выигрыш ${Game.fmt(win)}` : `🎡 ${num} · Проигрыш`, win > 0 ? 'green' : 'red', 3000);
   },
 
   /* ===== Кейс ===== */
   caseOpen() {
     const bet = this.getBet();
-    if (Game.state.money < bet) return alert('Мало денег');
+    if (Game.state.money < bet) return UI.toast('Мало денег', 'red');
     Game.state.money -= bet;
     const r = Math.random();
     let mult = 0;
@@ -243,13 +244,14 @@ Apps.casino = {
     const win = Math.round(bet * mult);
     Game.state.money += win;
     Game.save(); UI.updateStatus(); this.render();
-    alert(mult >= 10 ? `🎁 Джекпот! ${Game.fmt(win)}` : `🎁 ${Game.fmt(win)}`);
+    if (mult >= 10) UI.toast(`🎁 Джекпот! ${Game.fmt(win)}`, 'gold', 4000);
+    else UI.toast(`🎁 ${Game.fmt(win)}`, win > 0 ? 'green' : 'red', 2800);
   },
 
   /* ===== Мины ===== */
   minesStart() {
     const bet = this.getBet();
-    if (Game.state.money < bet) return alert('Мало денег');
+    if (Game.state.money < bet) return UI.toast('Мало денег', 'red');
     Game.state.money -= bet;
     const mines = [];
     while (mines.length < 5) {
@@ -264,7 +266,8 @@ Apps.casino = {
     if (this.minesState.mines.includes(i)) {
       this.minesState.active = false;
       Game.save(); UI.updateStatus(); this.render();
-      return alert('💥 Мина!');
+      UI.toast('💥 Мина!', 'red', 3000);
+      return;
     }
     this.minesState.revealed.push(i);
     const mult = [1.2,1.5,1.9,2.4,3.0,3.7,4.6,5.7,7.0,8.6];
@@ -277,6 +280,6 @@ Apps.casino = {
     Game.state.money += win;
     this.minesState.active = false;
     Game.save(); UI.updateStatus(); this.render();
-    alert(`Забрано: ${Game.fmt(win)}`);
+    UI.toast(`Забрано: ${Game.fmt(win)}`, 'gold', 3200);
   }
 };
