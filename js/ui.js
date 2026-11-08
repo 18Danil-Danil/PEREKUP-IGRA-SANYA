@@ -23,6 +23,7 @@ const UI = {
   ],
 
   _lastMoney: null,
+  _currentAppId: null,   // какой экран открыт сейчас (null = главный экран)
 
   init() {
     Game.init();
@@ -63,11 +64,24 @@ const UI = {
     }).join('');
   },
 
+  // Гасит фоновые процессы конкретного приложения, когда мы с него уходим.
+  _cleanupApp(id) {
+    if (id === 'jobs' && Apps.jobs && Apps.jobs.cleanup) Apps.jobs.cleanup();
+    if (id === 'race' && Apps.race && Apps.race.cleanup) Apps.race.cleanup();
+  },
+
   open(id) {
+    // 1) Casino: crash-интервал живёт только на своём экране
     if (id !== 'casino' && Apps.casino && Apps.casino.crashState && Apps.casino.crashState.interval) {
       clearInterval(Apps.casino.crashState.interval);
       Apps.casino.crashState.active = false;
     }
+    // 2) Если уходим с другого приложения — гасим его фоновые процессы
+    if (this._currentAppId && this._currentAppId !== id) {
+      this._cleanupApp(this._currentAppId);
+    }
+    this._currentAppId = id;
+
     try {
       if (Apps[id] && Apps[id].render) Apps[id].render();
       else this.toast('Приложение "' + id + '" не загружено', 'red');
@@ -78,10 +92,15 @@ const UI = {
   },
 
   back() {
+    // 1) Casino cleanup
     if (Apps.casino && Apps.casino.crashState && Apps.casino.crashState.interval) {
       clearInterval(Apps.casino.crashState.interval);
       Apps.casino.crashState.active = false;
     }
+    // 2) Гасим фоновые процессы текущего приложения
+    if (this._currentAppId) this._cleanupApp(this._currentAppId);
+    this._currentAppId = null;
+
     this.renderHome();
     this.updateStatus();
   },
