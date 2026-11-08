@@ -34,12 +34,12 @@ Apps.realestate = {
   buy(i) {
     const a = APARTMENTS[i];
     if (!a) return;
-    if (Game.state.money < a.price) return alert('Мало денег');
+    if (Game.state.money < a.price) return UI.toast('Мало денег', 'red');
     Game.state.money -= a.price;
     Game.state.apartments.push({ ...a });
     Game.addXP(20);
     Game.save(); UI.updateStatus(); this.render();
-    alert(`Куплено: ${a.name}`);
+    UI.toast(`Куплено: ${a.name}`, 'gold', 3200);
   },
   sell(i) {
     const a = Game.state.apartments[i];
@@ -48,6 +48,6 @@ Apps.realestate = {
     Game.state.money += price;
     Game.state.apartments.splice(i,1);
     Game.save(); UI.updateStatus(); this.render();
-    alert(`Продано за ${Game.fmt(price)}`);
+    UI.toast(`Продано за ${Game.fmt(price)}`, 'green');
   }
 };
