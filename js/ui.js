@@ -1,3 +1,7 @@
+// 🔑 КРИТИЧЕСКИЙ ФИКС: const Apps в data.js не попадает в window автоматически.
+// Прокидываем вручную, чтобы работали проверки window.Apps в game.js и sleep.js.
+if (typeof Apps !== 'undefined') window.Apps = Apps;
+
 const UI = {
   apps: [
     { id:'avtobuy',       name:'AvtoBuy',      icon:'🚗', color:'linear-gradient(135deg,#4a8cff,#1e40af)' },
