@@ -38,12 +38,12 @@ Apps.carImport = {
   },
 
   buyVisa() {
-    if (Game.state.money < 100000) return alert('Недостаточно');
+    if (Game.state.money < 100000) return UI.toast('Недостаточно', 'red');
     Game.state.money -= 100000;
     Game.state.visa = true;
     Game.save(); UI.updateStatus();
     this.render();
-    alert('Виза оформлена!');
+    UI.toast('Виза оформлена!', 'gold', 3200);
   },
 
   country(id) {
@@ -73,7 +73,7 @@ Apps.carImport = {
     const car = pool[carIdx];
     if (!c || !car) return;
     const price = Math.round(car.price * (1 + c.fee));
-    if (Game.state.money < price) return alert('Недостаточно денег');
+    if (Game.state.money < price) return UI.toast('Недостаточно денег', 'red');
     Game.state.money -= price;
     if (!Game.state.imports) Game.state.imports = [];
     Game.state.imports.push({
@@ -83,7 +83,7 @@ Apps.carImport = {
       country: c.name, daysLeft: c.deliveryDays
     });
     Game.save(); UI.updateStatus(); this.render();
-    alert(`${car.name} заказана! Придёт через ${c.deliveryDays} дн`);
+    UI.toast(`${car.name} заказана · Придёт через ${c.deliveryDays} дн`, 'green', 3500);
   },
 
   tick() {
@@ -106,7 +106,7 @@ Apps.carImport = {
     });
     if (arrived.length) {
       arrived.forEach(n => Game.pushNotif('✈️', `Прибыл автомобиль: ${n}`));
-      setTimeout(() => alert(`✈️ Прибыли: ${arrived.join(', ')}`), 100);
+      UI.toast(`✈️ Прибыли: ${arrived.join(', ')}`, 'gold', 4000);
     }
   }
 };
