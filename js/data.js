@@ -54,22 +54,26 @@ const TUNING = [
   { name:"Спортвыхлоп", price:32000, bonus:45000 }
 ];
 
+// Пул номеров — теперь без фиксированного региона
 const NUMBERS_POOL = [
-  { num:"А001АА", region:77, price:150000 },
-  { num:"Е777КХ", region:77, price:500000 },
-  { num:"О005ОК", region:99, price:200000 },
-  { num:"Х555ХХ", region:77, price:350000 },
-  { num:"СТЛ",    region:77, price:800000 },
-  { num:"ЛЮК",    region:77, price:900000 },
-  { num:"Т001ТТ", region:77, price:250000 },
-  { num:"Р005ОК", region:99, price:300000 },
-  { num:"123",    region:716, price:100000 },
-  { num:"911",    region:99, price:180000 },
-  { num:"228",    region:99, price:90000 },
-  { num:"112",    region:77, price:70000 },
-  { num:"102",    region:77, price:60000 },
-  { num:"314",    region:99, price:50000 }
+  { num:"А001АА", price:150000 },
+  { num:"Е777КХ", price:500000 },
+  { num:"О005ОК", price:200000 },
+  { num:"Х555ХХ", price:350000 },
+  { num:"СТЛ",    price:800000 },
+  { num:"ЛЮК",    price:900000 },
+  { num:"Т001ТТ", price:250000 },
+  { num:"Р005ОК", price:300000 },
+  { num:"123",    price:100000 },
+  { num:"911",    price:180000 },
+  { num:"228",    price:90000 },
+  { num:"112",    price:70000 },
+  { num:"102",    price:60000 },
+  { num:"314",    price:50000 }
 ];
+
+// Разнообразие регионов для номеров
+const NUMBERS_REGIONS = [77, 99, 97, 199, 777, 50, 78, 116, 750, 190];
 
 const APARTMENTS = [
   { name:"Студия", price:3500000, rent:25000, icon:"🏢" },
@@ -146,29 +150,39 @@ const FAMILY_REPLIES = {
   hard:     ['Всё наладится, сынок', 'Ты сильный, справишься', 'Держись, я в тебя верю']
 };
 
-/* ===== Бизнес (СТО / мойка / автосалон) ===== */
 const BUSINESSES = [
   {
     id:'sto', name:'СТО «Мастер»', icon:'🔧',
     price:1500000, dailyIncome:35000,
     desc:'Своё СТО: ремонт своих машин −50%',
-    perks:{ repairDiscount:0.5 }
+    perks:{ repairDiscount:0.5 },
+    upgrades:[
+      { level:2, cost:750000 },
+      { level:3, cost:1500000 }
+    ]
   },
   {
     id:'wash', name:'Автомойка', icon:'🧽',
     price:800000, dailyIncome:18000,
     desc:'Мойка машин: клиенты каждый день',
-    perks:{}
+    perks:{},
+    upgrades:[
+      { level:2, cost:400000 },
+      { level:3, cost:800000 }
+    ]
   },
   {
     id:'salon', name:'Автосалон', icon:'🏪',
     price:4000000, dailyIncome:80000,
     desc:'Автосалон: продажи идут сами, но медленнее',
-    perks:{ autoSell:true }
+    perks:{ autoSell:true },
+    upgrades:[
+      { level:2, cost:2000000 },
+      { level:3, cost:4000000 }
+    ]
   }
 ];
 
-/* ===== Торг (реплики продавца) ===== */
 const TRADE_ARGUMENTS = [
   { id:'lowball',  label:'Предложить низкую цену', risk:'high',  discountRange:[0.15, 0.30] },
   { id:'defect',   label:'Указать на дефект',       risk:'low',   discountRange:[0.05, 0.15] },
@@ -184,7 +198,6 @@ const TRADE_REPLIES = {
   thinking:['Хм... подумаю...', 'Ну давай пополам', 'Скину, но чуть-чуть']
 };
 
-/* ===== Гонки ===== */
 const RACE_TIERS = [
   { id:'street', name:'🌃 Ночные гонки',   buy:10000,  mult:2,  skill:0.55 },
   { id:'club',   name:'🏎 Клубные гонки',  buy:50000,  mult:2,  skill:0.50 },
@@ -195,3 +208,29 @@ const REVIEW_PHRASES = {
   positive: ['Отличный продавец!', 'Машина как описана, рекомендую', 'Всё честно, доволен', 'Продавец адекватный, скинул немного'],
   negative: ['Скрыл дефект!', 'Обманул с пробегом', 'Не берите у него', 'Слил хлам за дорого']
 };
+
+// Генератор рынка блатных номеров — случайный набор {num, region, price}
+function generateNumbersMarket() {
+  const market = [];
+  const used = new Set();
+  NUMBERS_POOL.forEach(pool => {
+    const count = 1 + Math.floor(Math.random() * 2); // 1 или 2 предложения
+    let added = 0;
+    let attempts = 0;
+    while (added < count && attempts < 15) {
+      attempts++;
+      const region = NUMBERS_REGIONS[Math.floor(Math.random() * NUMBERS_REGIONS.length)];
+      const key = pool.num + '_' + region;
+      if (used.has(key)) continue;
+      used.add(key);
+      market.push({
+        id: 'nm_' + key + '_' + Math.random().toString(36).slice(2, 6),
+        num: pool.num,
+        region,
+        price: Math.round(pool.price * (0.7 + Math.random() * 0.6) / 1000) * 1000
+      });
+      added++;
+    }
+  });
+  return market;
+}
