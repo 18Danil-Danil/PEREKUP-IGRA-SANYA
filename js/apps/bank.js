@@ -50,28 +50,28 @@ Apps.bank = {
   },
   payTax() {
     const taxDebt = Game.state.taxDebt || 0;
-    if (taxDebt <= 0) return alert('Долгов нет');
-    if (Game.state.money < taxDebt) return alert('Не хватает денег');
+    if (taxDebt <= 0) return UI.toast('Долгов нет', 'info');
+    if (Game.state.money < taxDebt) return UI.toast('Не хватает денег', 'red');
     Game.state.money -= taxDebt;
     Game.state.taxDebt = 0;
     Game.state.lastTaxDay = Game.state.day;
     Game.save(); UI.updateStatus();
     this.render();
-    alert('Долг погашен');
+    UI.toast('Долг погашен', 'green');
   },
   loan(sum) {
-    if (sum > Game.state.level*150000) return alert('Лимит превышен');
-    if (Game.state.debt>0) return alert('Сначала погаси текущий');
+    if (sum > Game.state.level*150000) return UI.toast('Лимит превышен', 'red');
+    if (Game.state.debt>0) return UI.toast('Сначала погаси текущий', 'red');
     Game.state.money += sum;
     Game.state.debt = Math.round(sum*1.3);
     Game.save(); UI.updateStatus(); this.render();
-    alert(`Кредит ${Game.fmt(sum)} выдан. К возврату: ${Game.fmt(Game.state.debt)}`);
+    UI.toast(`Кредит ${Game.fmt(sum)} выдан · К возврату ${Game.fmt(Game.state.debt)}`, 'gold', 3500);
   },
   repay() {
-    if (Game.state.money < Game.state.debt) return alert('Не хватает');
+    if (Game.state.money < Game.state.debt) return UI.toast('Не хватает', 'red');
     Game.state.money -= Game.state.debt;
     Game.state.debt = 0;
     Game.save(); UI.updateStatus(); this.render();
-    alert('Кредит погашен');
+    UI.toast('Кредит погашен', 'green');
   }
 };
