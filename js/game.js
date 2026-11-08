@@ -1,5 +1,4 @@
 // Резервный список регионов на случай, если data.js не содержит NUMBERS_REGIONS
-// (например, если у пользователя закешировался старый data.js).
 const NUMBERS_REGIONS_FALLBACK = [77, 99, 97, 199, 777, 50, 78, 116, 750, 190];
 
 const Game = {
@@ -7,6 +6,7 @@ const Game = {
   SAVE_KEY_PREFIX: 'perekup_slot_',
   ACTIVE_SLOT_KEY: 'perekup_active_slot',
   state: null,
+  lastTickAt: Date.now(),
 
   get activeSlot() {
     const v = parseInt(localStorage.getItem(this.ACTIVE_SLOT_KEY) || '1');
@@ -70,6 +70,7 @@ const Game = {
     this.migrate();
     if (!this.state.listings || this.state.listings.length === 0) this.spawnListings(12);
     this.save();
+    this.lastTickAt = Date.now();
     setInterval(() => this.tick(), 60000);
   },
 
@@ -203,6 +204,7 @@ const Game = {
   },
 
   tick() {
+    this.lastTickAt = Date.now();
     this.state.hour++;
     if (this.state.hour >= 24) {
       this.state.hour = 0; this.state.day++;
@@ -228,6 +230,7 @@ const Game = {
       if (window.Apps && Apps.carImport && Apps.carImport.tick) Apps.carImport.tick();
       if (window.Apps && Apps.family && Apps.family.checkBirthdays) Apps.family.checkBirthdays();
       this.refillNumbersMarket();
+      if (window.UI && UI.toast) UI.toast(`🌅 День ${this.state.day}`, 'info', 2400);
     }
     if (window.Apps && Apps.auction && Apps.auction.tick) Apps.auction.tick();
     this.save();
@@ -302,6 +305,7 @@ const Game = {
       this.state = parsed;
       this.migrate();
       this.save();
+      this.lastTickAt = Date.now();
     } catch(e) { if (window.UI) UI.toast('Ошибка загрузки слота', 'red'); }
   },
 
