@@ -19,19 +19,71 @@ const UI = {
     { id:'realestate', name:'Недвижимость', icon:'🏠', color:'linear-gradient(135deg,#ff9352,#9a3412)' },
     { id:'taxi',       name:'Таксопарк',    icon:'🚕', color:'linear-gradient(135deg,#ffd93d,#d97706)' },
     { id:'sleep',      name:'Сон',          icon:'💤', color:'linear-gradient(135deg,#8b93ff,#3730a3)' },
+    { id:'tutorial',   name:'Как играть',   icon:'📖', color:'linear-gradient(135deg,#7c5cff,#3730a3)' },
     { id:'saves',      name:'Сохранения',   icon:'💾', color:'linear-gradient(135deg,#64748b,#1e293b)' }
   ],
 
   _lastMoney: null,
-  _currentAppId: null,   // какой экран открыт сейчас (null = главный экран)
+  _currentAppId: null,
 
   init() {
     Game.init();
+    this._installShell();
     this.renderHome();
     this.updateStatus();
     this._installRipple();
     this._installScreenObserver();
     this._installToast();
+
+    // Первый запуск — показываем туториал
+    if (!Game.state.tutorialShown) {
+      setTimeout(() => this.open('tutorial'), 400);
+    }
+  },
+
+  // Стили + элементы статусбара (автосейв, колокольчик)
+  _installShell() {
+    const style = document.createElement('style');
+    style.textContent = `
+      #save-indicator { font-size:11px; opacity:0; margin-right:6px; display:inline-block; }
+      @keyframes saveFlash {
+        0%   { opacity:0; transform:scale(.8); }
+        20%  { opacity:1; transform:scale(1.15); }
+        100% { opacity:0; transform:scale(1); }
+      }
+      #save-indicator.flash { animation: saveFlash .8s ease-out; }
+      #bell { position:relative; cursor:pointer; font-size:16px; padding:0 6px; user-select:none; }
+      #bell:active { transform:scale(.85); }
+      #bell-badge {
+        position:absolute; top:-4px; right:-2px;
+        background:#ff5470; color:#fff; font-size:9px; font-weight:800;
+        border-radius:8px; padding:1px 4px; min-width:14px; text-align:center;
+        display:none; box-shadow:0 0 8px rgba(255,84,112,.6);
+      }
+      #bell-badge.show { display:inline-block; }
+    `;
+    document.head.appendChild(style);
+
+    const sb = document.getElementById('statusbar');
+    if (!sb) return;
+
+    // Автосейв-индикатор в начало
+    if (!document.getElementById('save-indicator')) {
+      const save = document.createElement('span');
+      save.id = 'save-indicator';
+      save.textContent = '💾';
+      sb.insertBefore(save, sb.firstChild);
+    }
+
+    // Колокольчик перед балансом
+    if (!document.getElementById('bell')) {
+      const bell = document.createElement('span');
+      bell.id = 'bell';
+      bell.innerHTML = '🔔<span id="bell-badge">0</span>';
+      bell.onclick = () => UI.open('notifications');
+      const money = document.getElementById('money');
+      sb.insertBefore(bell, money);
+    }
   },
 
   updateStatus() {
@@ -48,6 +100,18 @@ const UI = {
     this._lastMoney = newVal;
     const h = String(Game.state.hour).padStart(2,'0');
     clockEl.textContent = `День ${Game.state.day}, ${h}:00`;
+
+    // Бейдж непрочитанных уведомлений
+    const badge = document.getElementById('bell-badge');
+    if (badge) {
+      const unread = (Game.state.notifications || []).filter(n => !n.read).length;
+      if (unread > 0) {
+        badge.textContent = unread > 99 ? '99+' : unread;
+        badge.classList.add('show');
+      } else {
+        badge.classList.remove('show');
+      }
+    }
   },
 
   renderHome() {
@@ -64,19 +128,16 @@ const UI = {
     }).join('');
   },
 
-  // Гасит фоновые процессы конкретного приложения, когда мы с него уходим.
   _cleanupApp(id) {
     if (id === 'jobs' && Apps.jobs && Apps.jobs.cleanup) Apps.jobs.cleanup();
     if (id === 'race' && Apps.race && Apps.race.cleanup) Apps.race.cleanup();
   },
 
   open(id) {
-    // 1) Casino: crash-интервал живёт только на своём экране
     if (id !== 'casino' && Apps.casino && Apps.casino.crashState && Apps.casino.crashState.interval) {
       clearInterval(Apps.casino.crashState.interval);
       Apps.casino.crashState.active = false;
     }
-    // 2) Если уходим с другого приложения — гасим его фоновые процессы
     if (this._currentAppId && this._currentAppId !== id) {
       this._cleanupApp(this._currentAppId);
     }
@@ -92,12 +153,10 @@ const UI = {
   },
 
   back() {
-    // 1) Casino cleanup
     if (Apps.casino && Apps.casino.crashState && Apps.casino.crashState.interval) {
       clearInterval(Apps.casino.crashState.interval);
       Apps.casino.crashState.active = false;
     }
-    // 2) Гасим фоновые процессы текущего приложения
     if (this._currentAppId) this._cleanupApp(this._currentAppId);
     this._currentAppId = null;
 
