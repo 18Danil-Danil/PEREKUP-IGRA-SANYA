@@ -95,4 +95,23 @@ Apps.garage = {
     Game.state.stats.profit += profit;
     Game.state.stats.sold++;
     Game.state.garage.splice(i, 1);
-    Game.addXP(
+    Game.addXP(20);
+    Game.save(); UI.updateStatus(); this.render();
+    const msg = tax > 0
+      ? `Продано за ${Game.fmt(sellPrice)} · Профит ${Game.fmt(profit)} · НДФЛ ${Game.fmt(tax)}`
+      : `Продано за ${Game.fmt(sellPrice)} · Профит ${Game.fmt(profit)}`;
+    UI.toast(msg, 'green', 3200);
+  },
+  listOnMarket(i) {
+    const c = Game.state.garage[i];
+    const price = parseInt(document.getElementById('listPrice').value);
+    if (isNaN(price) || price < 1000) return UI.toast('Некорректная цена', 'red');
+    if (!c.registered) {
+      if (!confirm('Машина не на учёте. Штраф 30 000 ₽. Продолжить?')) return;
+      Game.addFine('Продажа без учёта', 30000);
+    }
+    Apps.trade.listCar(c.id, price);
+    UI.toast('Выставлено на продажу. Покупатели скоро придут', 'green', 3000);
+    this.render();
+  }
+};
