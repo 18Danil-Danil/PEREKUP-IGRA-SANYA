@@ -7,7 +7,13 @@ Apps.sleep = {
       <div class="card" style="background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(55,48,163,.18))">
         <h3>Сейчас</h3>
         <div style="font-size:14px">День ${Game.state.day}, ${String(Game.state.hour).padStart(2,'0')}:00</div>
-        <div style="font-size:12px;color:#888;margin-top:4px">Сон скипает время. Работы и события обновятся.</div>
+        <div style="font-size:12px;color:#888;margin-top:4px">Время идёт само (1 час = 60 сек). Здесь можно ускорить.</div>
+      </div>
+
+      <div class="card">
+        <h3>⏱ Подождать 1 час</h3>
+        <div style="font-size:13px;color:#888;margin-bottom:8px">Быстрый сдвиг на час вперёд, без скипа дня.</div>
+        <button onclick="Apps.sleep.waitHour()">+1 час</button>
       </div>
 
       <div class="card">
@@ -32,14 +38,27 @@ Apps.sleep = {
         <h3>📊 Что будет при новом дне</h3>
         <div style="font-size:13px;color:#888">
           • Обновятся работы (можно снова заработать)<br>
-          • Придут доходы с недвижимости и таксопарка<br>
+          • Придут доходы с недвижимости, бизнеса и таксопарка<br>
           • Появятся 2 новых объявления на AvtoBuy<br>
           • Могут прийти покупатели на твои объявления<br>
           • Могут прийти события от родных<br>
+          • Пополнится рынок номеров<br>
           • Налоги пересчитаются раз в 7 дней
         </div>
       </div>
     `;
+  },
+
+  waitHour() {
+    Game.state.hour++;
+    Game.lastTickAt = Date.now();
+    if (Game.state.hour >= 24) {
+      this.nextDay();
+    } else {
+      Game.save(); UI.updateStatus();
+      UI.toast(`+1 час · ${String(Game.state.hour).padStart(2,'0')}:00`, 'info', 2400);
+      this.render();
+    }
   },
 
   nextDay() {
@@ -68,22 +87,33 @@ Apps.sleep = {
     if (window.Apps && Apps.family && Apps.family.checkBirthdays) Apps.family.checkBirthdays();
     if (window.Apps && Apps.auction && Apps.auction.tick) Apps.auction.tick();
     Game.refillNumbersMarket();
+    Game.lastTickAt = Date.now();
     Game.save(); UI.updateStatus();
     const passive = rent + taxi + biz;
-    if (passive > 0) UI.toast(`День ${Game.state.day} · +${Game.fmt(passive)} с пассива`, 'green');
+    if (passive > 0) UI.toast(`День ${Game.state.day} · +${Game.fmt(passive)} с пассива`, 'green', 3200);
   },
 
   sleep() {
     let hours = Game.state.hour + 8;
     if (hours >= 24) { this.nextDay(); }
-    else { Game.state.hour = hours; Game.save(); UI.updateStatus(); UI.toast('Поспали 8 часов', 'info'); }
+    else {
+      Game.state.hour = hours;
+      Game.lastTickAt = Date.now();
+      Game.save(); UI.updateStatus();
+      UI.toast('Поспали 8 часов', 'info');
+    }
     UI.back();
   },
 
   nap() {
     const h = Game.state.hour + 2;
     if (h >= 24) { this.nextDay(); }
-    else { Game.state.hour = h; Game.save(); UI.updateStatus(); UI.toast('Вздремнули 2 часа', 'info'); }
+    else {
+      Game.state.hour = h;
+      Game.lastTickAt = Date.now();
+      Game.save(); UI.updateStatus();
+      UI.toast('Вздремнули 2 часа', 'info');
+    }
     UI.back();
   },
 
