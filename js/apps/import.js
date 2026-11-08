@@ -105,6 +105,7 @@ Apps.carImport = {
       return true;
     });
     if (arrived.length) {
+      arrived.forEach(n => Game.pushNotif('✈️', `Прибыл автомобиль: ${n}`));
       setTimeout(() => alert(`✈️ Прибыли: ${arrived.join(', ')}`), 100);
     }
   }
