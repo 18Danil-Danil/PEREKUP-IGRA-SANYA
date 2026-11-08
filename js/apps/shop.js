@@ -22,12 +22,12 @@ Apps.shop = {
   buy(id) {
     const t = TOOLS_SHOP.find(x => x.id === id);
     if (!t) return;
-    if (Game.state.tools[id]) return alert('Уже куплено');
-    if (Game.state.money < t.price) return alert('Недостаточно денег');
+    if (Game.state.tools[id]) return UI.toast('Уже куплено', 'info');
+    if (Game.state.money < t.price) return UI.toast('Недостаточно денег', 'red');
     Game.state.money -= t.price;
     Game.state.tools[id] = true;
     Game.save(); UI.updateStatus();
     this.render();
-    alert(`${t.name} куплен!`);
+    UI.toast(`${t.name} куплен!`, 'green');
   }
 };
