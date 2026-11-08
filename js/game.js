@@ -1,3 +1,7 @@
+// Резервный список регионов на случай, если data.js не содержит NUMBERS_REGIONS
+// (например, если у пользователя закешировался старый data.js).
+const NUMBERS_REGIONS_FALLBACK = [77, 99, 97, 199, 777, 50, 78, 116, 750, 190];
+
 const Game = {
   SAVE_VERSION: '3.2',
   SAVE_KEY_PREFIX: 'perekup_slot_',
@@ -12,6 +16,46 @@ const Game = {
     localStorage.setItem(this.ACTIVE_SLOT_KEY, String(n));
   },
   get SAVE_KEY() { return this.SAVE_KEY_PREFIX + this.activeSlot; },
+
+  // ===== Утилиты, не зависящие от data.js =====
+  _regions() {
+    return (typeof NUMBERS_REGIONS !== 'undefined' && Array.isArray(NUMBERS_REGIONS))
+      ? NUMBERS_REGIONS
+      : NUMBERS_REGIONS_FALLBACK;
+  },
+
+  _numbersPool() {
+    return (typeof NUMBERS_POOL !== 'undefined' && Array.isArray(NUMBERS_POOL)) ? NUMBERS_POOL : [];
+  },
+
+  // Генератор рынка номеров. Работает даже со старым data.js:
+  // если элемент пула содержит region — используем его, иначе берём из _regions().
+  generateNumbersMarket() {
+    const pool = this._numbersPool();
+    const regions = this._regions();
+    const market = [];
+    const used = new Set();
+    pool.forEach(item => {
+      const count = 1 + Math.floor(Math.random() * 2);
+      let added = 0;
+      let attempts = 0;
+      while (added < count && attempts < 15) {
+        attempts++;
+        const region = (item && item.region) ? item.region : regions[Math.floor(Math.random() * regions.length)];
+        const key = item.num + '_' + region;
+        if (used.has(key)) continue;
+        used.add(key);
+        market.push({
+          id: 'nm_' + key + '_' + Math.random().toString(36).slice(2, 6),
+          num: item.num,
+          region,
+          price: Math.round(item.price * (0.7 + Math.random() * 0.6) / 1000) * 1000
+        });
+        added++;
+      }
+    });
+    return market;
+  },
 
   init() {
     let saved = null;
@@ -72,6 +116,14 @@ const Game = {
     if (s.tutorialShown === undefined) s.tutorialShown = false;
     // v3.4
     if (!s.unlockedAchievements) s.unlockedAchievements = [];
+    // v3.5 — рынок номеров и уровни бизнесов
+    if (!s.numbersMarket) s.numbersMarket = this.generateNumbersMarket();
+    ['sto','wash','salon'].forEach(id => {
+      const b = s.businesses && s.businesses[id];
+      if (b && b.level === undefined) {
+        s.businesses[id] = { level: 1 };
+      }
+    });
     this.save();
   },
 
@@ -81,7 +133,8 @@ const Game = {
       money:100000, day:1, hour:12, level:1, xp:0, reputation:5,
       garage:[], listings:[], nextId:1, debt:0,
       tools:{thickness:false, obd:false, mileage:false},
-      numbersOwned:[], apartments:[], taxiDrivers:[],
+      numbersOwned:[], numbersMarket: this.generateNumbersMarket(),
+      apartments:[], taxiDrivers:[],
       auctionLots:[], auctionNextId:1, visa:false, imports:[],
       casinoBet: 1000, lastWorkDay: 0, jobsDoneToday: [],
       taxDebt: 0, lastTaxDay: 0,
@@ -114,6 +167,41 @@ const Game = {
     }
   },
 
+  // Расчёт дохода бизнеса с учётом уровня
+  calcBizIncome(id, b) {
+    if (!b) return 0;
+    const def = BUSINESSES.find(x => x.id === id);
+    if (!def) return 0;
+    const lvl = b.level || 1;
+    const mult = [1, 1.5, 2][Math.min(lvl, 3) - 1] || 1;
+    return Math.round(def.dailyIncome * mult);
+  },
+
+  // Рефилл рынка номеров — не больше 8 одновременно
+  refillNumbersMarket() {
+    if (!this.state.numbersMarket) this.state.numbersMarket = [];
+    const market = this.state.numbersMarket;
+    if (market.length >= 8) return;
+    const pool = this._numbersPool();
+    const regions = this._regions();
+    if (!pool.length) return;
+    const target = 8;
+    let attempts = 0;
+    while (market.length < target && attempts < 30) {
+      attempts++;
+      const item = pool[Math.floor(Math.random() * pool.length)];
+      const region = (item && item.region) ? item.region : regions[Math.floor(Math.random() * regions.length)];
+      if (this.state.numbersOwned.some(o => o.num === item.num && o.region === region)) continue;
+      if (market.some(m => m.num === item.num && m.region === region)) continue;
+      market.push({
+        id: 'nm_' + item.num + '_' + region + '_' + this.state.nextId++,
+        num: item.num,
+        region,
+        price: Math.round(item.price * (0.7 + Math.random() * 0.6) / 1000) * 1000
+      });
+    }
+  },
+
   tick() {
     this.state.hour++;
     if (this.state.hour >= 24) {
@@ -122,7 +210,9 @@ const Game = {
       this.state.jobsDoneToday = [];
       const rent = this.state.apartments.reduce((s,a)=>s+a.rent,0);
       const taxi = this.state.taxiDrivers.reduce((s,d)=>s+d.income,0);
-      const biz = Object.values(this.state.businesses).filter(Boolean).reduce((s,b)=>s+b.dailyIncome,0);
+      const biz = Object.entries(this.state.businesses)
+        .filter(([,b])=>b)
+        .reduce((sum, [id, b]) => sum + this.calcBizIncome(id, b), 0);
       this.state.money += rent + taxi + biz;
       this.state.taxiDrivers.forEach(d => {
         if (Math.random() < 0.15) {
@@ -137,6 +227,7 @@ const Game = {
       }
       if (window.Apps && Apps.carImport && Apps.carImport.tick) Apps.carImport.tick();
       if (window.Apps && Apps.family && Apps.family.checkBirthdays) Apps.family.checkBirthdays();
+      this.refillNumbersMarket();
     }
     if (window.Apps && Apps.auction && Apps.auction.tick) Apps.auction.tick();
     this.save();
@@ -144,24 +235,17 @@ const Game = {
   },
 
   save() {
-    // 1) запись
     try { localStorage.setItem(this.SAVE_KEY, JSON.stringify(this.state)); } catch(e){}
-
-    // 2) flash индикатора
     const el = document.getElementById('save-indicator');
     if (el) {
       el.classList.remove('flash');
       void el.offsetWidth;
       el.classList.add('flash');
     }
-
-    // 3) синхронная проверка достижений
     if (window.Apps && Apps.achievements && Apps.achievements.checkNew) {
       try {
         const newly = Apps.achievements.checkNew();
         if (newly && newly.length > 0) {
-          // награды и уведомления уже добавлены в state,
-          // но зафиксируем на диск сразу
           try { localStorage.setItem(this.SAVE_KEY, JSON.stringify(this.state)); } catch(e){}
           if (window.UI && UI.updateStatus) UI.updateStatus();
         }
@@ -183,7 +267,6 @@ const Game = {
     if (window.UI && UI.updateStatus) UI.updateStatus();
   },
 
-  // ===== Слоты сохранений =====
   getSlotsInfo() {
     const info = [];
     for (let i = 1; i <= 3; i++) {
@@ -219,12 +302,10 @@ const Game = {
       this.state = parsed;
       this.migrate();
       this.save();
-    } catch(e) { alert('Ошибка загрузки слота'); }
+    } catch(e) { if (window.UI) UI.toast('Ошибка загрузки слота', 'red'); }
   },
 
-  deleteSlot(n) {
-    localStorage.removeItem(this.SAVE_KEY_PREFIX + n);
-  },
+  deleteSlot(n) { localStorage.removeItem(this.SAVE_KEY_PREFIX + n); },
 
   saveToSlot(n) {
     if (n === this.activeSlot) { this.save(); return; }
@@ -257,23 +338,37 @@ const Game = {
   }
 };
 
+// ===== Хелперы (глобальные функции) =====
+
 function randomDefects() {
   const n = Math.floor(Math.random() * 3);
   const res = [];
   for (let i = 0; i < n; i++) res.push(DEFECTS_VISIBLE[Math.floor(Math.random()*DEFECTS_VISIBLE.length)]);
   return [...new Set(res)];
 }
+
 function randomHiddenDefects() {
   const n = Math.floor(Math.random() * 2);
   const res = [];
   for (let i = 0; i < n; i++) res.push(DEFECTS_HIDDEN[Math.floor(Math.random()*DEFECTS_HIDDEN.length)]);
   return [...new Set(res)];
 }
+
 function generateListing(id) {
   const base = CAR_DB[Math.floor(Math.random() * CAR_DB.length)];
   const price = Math.round(base.price * (0.6 + Math.random()*0.5) / 1000) * 1000;
   const hasNumber = Math.random() < 0.3;
-  const number = hasNumber ? NUMBERS_POOL[Math.floor(Math.random()*NUMBERS_POOL.length)] : null;
+  let number = null;
+  if (hasNumber) {
+    const pool = (typeof NUMBERS_POOL !== 'undefined' && Array.isArray(NUMBERS_POOL)) ? NUMBERS_POOL : [];
+    const regions = (typeof NUMBERS_REGIONS !== 'undefined' && Array.isArray(NUMBERS_REGIONS))
+      ? NUMBERS_REGIONS : NUMBERS_REGIONS_FALLBACK;
+    if (pool.length) {
+      const numBase = pool[Math.floor(Math.random()*pool.length)];
+      const region = (numBase && numBase.region) ? numBase.region : regions[Math.floor(Math.random()*regions.length)];
+      number = { num: numBase.num, region, price: numBase.price };
+    }
+  }
   return {
     id, name:base.name, icon:base.icon, price, market:base.market,
     defects: randomDefects(), hiddenDefects: randomHiddenDefects(), inspected:false,
