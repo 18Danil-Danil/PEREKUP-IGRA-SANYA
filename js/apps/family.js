@@ -207,6 +207,7 @@ Apps.family = {
         if (m.lastBirthdayDay !== Game.state.day) {
           m.lastBirthdayDay = Game.state.day;
           m.needCongrats = true;
+          Game.pushNotif('🎂', `${f.name} — день рождения! Не забудь поздравить`);
         }
       } else if (m.needCongrats && m.lastBirthdayDay < Game.state.day - 1) {
         m.trust = Math.max(0, m.trust - 10);
@@ -225,6 +226,7 @@ Apps.family = {
           total += gift;
         });
         if (total > 0) {
+          Game.pushNotif('🎉', `С днём рождения тебя! Родные скинулись: ${Game.fmt(total)}`);
           setTimeout(() => alert(`🎂 С днём рождения! Родные скинулись: ${Game.fmt(total)}`), 600);
         }
       }
