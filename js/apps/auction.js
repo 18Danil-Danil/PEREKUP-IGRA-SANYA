@@ -114,6 +114,7 @@ Apps.auction = {
       return true;
     });
     if (results.length) {
+      results.forEach(n => Game.pushNotif('🏆', `Победа на аукционе: ${n}`));
       setTimeout(() => alert(`🏆 Победа на аукционе: ${results.join(', ')}`), 100);
     }
     if (Game.state.auctionLots.length < 3 && Math.random() < 0.5) this.spawnLot();
