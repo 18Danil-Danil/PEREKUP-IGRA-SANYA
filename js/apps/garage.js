@@ -25,12 +25,13 @@ Apps.garage = {
     const c = Game.state.garage[i];
     const hasSTO = Game.state.businesses && Game.state.businesses.sto;
     const cost = Math.round(c.defects.length * 25000 * (hasSTO ? 0.5 : 1));
-    if (!c.defects.length) return alert('Нечего чинить');
-    if (Game.state.money < cost) return alert('Не хватает денег');
+    if (!c.defects.length) return UI.toast('Нечего чинить', 'info');
+    if (Game.state.money < cost) return UI.toast('Не хватает денег', 'red');
     Game.state.money -= cost;
     c.defects = [];
     c.market = Math.round(c.market * 0.95);
     Game.save(); UI.updateStatus(); this.render();
+    UI.toast('Машина отремонтирована', 'green');
   },
   tuneMenu(i) {
     const c = Game.state.garage[i];
@@ -50,13 +51,14 @@ Apps.garage = {
     const c = Game.state.garage[i];
     const t = TUNING.find(x => x.name === name);
     if (!t) return;
-    if (Game.state.money < t.price) return alert('Недостаточно денег');
+    if (Game.state.money < t.price) return UI.toast('Недостаточно денег', 'red');
     if (!c.tunings) c.tunings = [];
     c.tunings.push(t);
     Game.state.money -= t.price;
     Game.state.stats.tuningsInstalled++;
     Game.addXP(10);
     Game.save(); UI.updateStatus(); this.tuneMenu(i);
+    UI.toast(`${t.name} установлен!`, 'green');
   },
   sellMenu(i) {
     const c = Game.state.garage[i];
@@ -93,20 +95,4 @@ Apps.garage = {
     Game.state.stats.profit += profit;
     Game.state.stats.sold++;
     Game.state.garage.splice(i, 1);
-    Game.addXP(20);
-    Game.save(); UI.updateStatus(); this.render();
-    alert(`Продано за ${Game.fmt(sellPrice)}\nПрофит: ${Game.fmt(profit)}${tax>0?'\nНДФЛ: '+Game.fmt(tax):''}`);
-  },
-  listOnMarket(i) {
-    const c = Game.state.garage[i];
-    const price = parseInt(document.getElementById('listPrice').value);
-    if (isNaN(price) || price < 1000) return alert('Некорректная цена');
-    if (!c.registered) {
-      if (!confirm('Машина не на учёте. Штраф 30 000 ₽. Продолжить?')) return;
-      Game.addFine('Продажа без учёта', 30000);
-    }
-    Apps.trade.listCar(c.id, price);
-    alert('Выставлено на продажу. Покупатели начнут приходить.');
-    this.render();
-  }
-};
+    Game.addXP(
