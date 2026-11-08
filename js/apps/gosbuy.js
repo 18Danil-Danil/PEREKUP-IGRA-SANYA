@@ -77,8 +77,8 @@ Apps.gosbuy = {
     const gender = document.getElementById('passGender').value;
     const day   = parseInt(document.getElementById('passDay').value);
     const month = parseInt(document.getElementById('passMonth').value);
-    if (!first || !last) return alert('Заполни имя и фамилию');
-    if (!day || !month || day < 1 || day > 30 || month < 1 || month > 12) return alert('Неверная дата');
+    if (!first || !last) return UI.toast('Заполни имя и фамилию', 'red');
+    if (!day || !month || day < 1 || day > 30 || month < 1 || month > 12) return UI.toast('Неверная дата', 'red');
     Game.state.passport = {
       firstName: first, lastName: last, gender,
       birthDay: [month, day],
@@ -87,42 +87,42 @@ Apps.gosbuy = {
     };
     Game.save(); UI.updateStatus();
     this.render();
-    alert('Паспорт создан!');
+    UI.toast('Паспорт создан!', 'green');
   },
 
   buyLicense() {
     if (Game.state.hasLicense) return;
-    if (Game.state.money < GOV_FEES.license) return alert('Недостаточно денег');
+    if (Game.state.money < GOV_FEES.license) return UI.toast('Недостаточно денег', 'red');
     Game.state.money -= GOV_FEES.license;
     Game.state.hasLicense = true;
     Game.addXP(10);
     Game.save(); UI.updateStatus();
     this.render();
-    alert('Права получены!');
+    UI.toast('Права получены!', 'green');
   },
 
   payTax() {
     const debt = Game.state.taxDebt || 0;
-    if (debt <= 0) return alert('Долгов нет');
-    if (Game.state.money < debt) return alert('Не хватает денег');
+    if (debt <= 0) return UI.toast('Долгов нет', 'info');
+    if (Game.state.money < debt) return UI.toast('Не хватает денег', 'red');
     Game.state.money -= debt;
     Game.state.taxDebt = 0;
     Game.state.lastTaxDay = Game.state.day;
     Game.state.fines = [];
     Game.save(); UI.updateStatus();
     this.render();
-    alert('Долг погашен');
+    UI.toast('Долг погашен', 'green');
   },
 
   register(carId) {
     const car = Game.state.garage.find(c => c.id === carId);
     if (!car) return;
-    if (car.registered) return alert('Уже на учёте');
-    if (Game.state.money < GOV_FEES.registration) return alert('Не хватает денег');
+    if (car.registered) return UI.toast('Уже на учёте', 'info');
+    if (Game.state.money < GOV_FEES.registration) return UI.toast('Не хватает денег', 'red');
     Game.state.money -= GOV_FEES.registration;
     car.registered = true;
     Game.save(); UI.updateStatus();
     this.render();
-    alert('Машина поставлена на учёт');
+    UI.toast('Машина поставлена на учёт', 'green');
   }
 };
