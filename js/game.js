@@ -3,7 +3,6 @@ const Game = {
   SAVE_KEY_PREFIX: 'perekup_slot_',
   ACTIVE_SLOT_KEY: 'perekup_active_slot',
   state: null,
-  _achTimer: null,
 
   get activeSlot() {
     const v = parseInt(localStorage.getItem(this.ACTIVE_SLOT_KEY) || '1');
@@ -145,22 +144,29 @@ const Game = {
   },
 
   save() {
+    // 1) запись
     try { localStorage.setItem(this.SAVE_KEY, JSON.stringify(this.state)); } catch(e){}
-    // flash индикатора автосейва
+
+    // 2) flash индикатора
     const el = document.getElementById('save-indicator');
     if (el) {
       el.classList.remove('flash');
       void el.offsetWidth;
       el.classList.add('flash');
     }
-    // проверка достижений — с throttle
-    if (this._achTimer) return;
-    this._achTimer = setTimeout(() => {
-      this._achTimer = null;
-      if (window.Apps && Apps.achievements && Apps.achievements.checkNew) {
-        try { Apps.achievements.checkNew(); } catch(e) { console.warn('Ach check:', e); }
-      }
-    }, 500);
+
+    // 3) синхронная проверка достижений
+    if (window.Apps && Apps.achievements && Apps.achievements.checkNew) {
+      try {
+        const newly = Apps.achievements.checkNew();
+        if (newly && newly.length > 0) {
+          // награды и уведомления уже добавлены в state,
+          // но зафиксируем на диск сразу
+          try { localStorage.setItem(this.SAVE_KEY, JSON.stringify(this.state)); } catch(e){}
+          if (window.UI && UI.updateStatus) UI.updateStatus();
+        }
+      } catch(e) { console.warn('Achievements check error:', e); }
+    }
   },
 
   pushNotif(icon, text) {
