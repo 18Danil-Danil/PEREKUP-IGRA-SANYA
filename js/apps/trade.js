@@ -99,7 +99,6 @@ Apps.trade = {
     this.renderSellerTrade();
 
     setTimeout(() => {
-      // Убираем "печатает"
       t.log = t.log.filter(m => m.text !== 'печатает...');
       let successChance = a.risk === 'high' ? 0.35 : a.risk === 'low' ? 0.75 : 0.55;
       if (t.round >= 3) successChance *= 0.6;
@@ -199,13 +198,15 @@ Apps.trade = {
       if (Math.random() < 0.55) {
         const names = ['Андрей','Михаил','Ольга','Дарья','Виктор','Екатерина','Павел','Ирина'];
         const priceFactor = 0.7 + Math.random() * 0.35;
+        const buyerName = names[Math.floor(Math.random()*names.length)];
         Game.state.pendingBuyers.push({
           id: Game.state.nextId++,
           listingId: l.id,
-          name: names[Math.floor(Math.random()*names.length)],
+          name: buyerName,
           offer: Math.round(l.price * priceFactor),
           day: Game.state.day
         });
+        Game.pushNotif('💬', `${buyerName} интересуется: ${l.icon} ${l.name}`);
       }
     });
   },
