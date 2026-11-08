@@ -7,6 +7,12 @@ Apps.profile = {
     const reviews = Game.state.reviews || [];
     const lawsuits = Game.state.lawsuits || [];
     const openSuits = lawsuits.filter(l => !l.resolved);
+
+    const achDefs = (Apps.achievements && Apps.achievements.defs) || [];
+    const achUnlocked = Game.state.unlockedAchievements || [];
+    const achCount = achUnlocked.length;
+    const achTotal = achDefs.length;
+
     s.innerHTML = `
       <div class="header"><span class="back" onclick="UI.back()">←</span><h2>Профиль</h2></div>
       <div class="card" style="text-align:center;background:linear-gradient(135deg,rgba(100,116,139,.2),rgba(51,65,85,.2))">
@@ -31,6 +37,13 @@ Apps.profile = {
         <div>Недвижимость: ${Game.state.apartments.length}</div>
         <div>Бизнесов: ${Object.values(Game.state.businesses||{}).filter(Boolean).length}</div>
       </div>
+      <div class="card" style="background:linear-gradient(135deg,rgba(255,205,60,.15),rgba(180,131,9,.15));border-color:rgba(255,205,60,.3)">
+        <h3>🏅 Достижения</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+          <div style="font-size:20px;font-weight:800;color:#ffcd3c">${achCount} / ${achTotal}</div>
+          <button class="gold" onclick="UI.open('achievements')">Открыть →</button>
+        </div>
+      </div>
       ${openSuits.length ? `
         <div class="card" style="background:rgba(255,84,112,.15);border-color:rgba(255,84,112,.4)">
           <h3>⚖ Открытые иски (${openSuits.length})</h3>
@@ -54,19 +67,6 @@ Apps.profile = {
           `).join('')}
         </div>
       ` : ''}
-      <div class="card">
-        <h3>Достижения</h3>
-        <div>${Game.state.stats.bought>=1?'✅':'⬜'} Первая покупка</div>
-        <div>${Game.state.stats.sold>=1?'✅':'⬜'} Первая продажа</div>
-        <div>${Game.state.stats.sold>=10?'✅':'⬜'} 10 продаж</div>
-        <div>${Game.state.stats.profit>=1000000?'✅':'⬜'} Профит 1 млн</div>
-        <div>${Game.state.stats.tuningsInstalled>=5?'✅':'⬜'} 5 тюнингов</div>
-        <div>${Game.state.apartments.length>=1?'✅':'⬜'} Недвижимость</div>
-        <div>${Game.state.hasLicense?'✅':'⬜'} Права</div>
-        <div>${Game.state.visa?'✅':'⬜'} Виза</div>
-        <div>${(Game.state.racesWon||0)>=5?'✅':'⬜'} 5 побед в гонках</div>
-        <div>${Object.values(Game.state.businesses||{}).filter(Boolean).length>=1?'✅':'⬜'} Первый бизнес</div>
-      </div>
       <div class="btn-row">
         <button class="red" onclick="if(confirm('Сбросить ЭТОТ слот?')){Game.deleteSlot(Game.activeSlot);Game.newGame();UI.renderHome();UI.updateStatus()}">Сброс слота</button>
       </div>
