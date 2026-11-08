@@ -162,8 +162,8 @@ Apps.family = {
 
   gift(key) {
     const m = this.initMember(key);
-    if (m.lastGift && Game.state.day - m.lastGift < 7) return alert('Уже давали на этой неделе');
-    if (m.trust < 30) return alert('Доверие слишком низкое. Поговори сначала');
+    if (m.lastGift && Game.state.day - m.lastGift < 7) return UI.toast('Уже давали на этой неделе', 'info');
+    if (m.trust < 30) return UI.toast('Доверие слишком низкое. Поговори сначала', 'red');
     const base = key === 'grandma' ? 5000 : key === 'grandpa' ? 7000 : 10000;
     const sum = base + Math.floor(Math.random() * 5000);
     Game.state.money += sum;
@@ -171,7 +171,7 @@ Apps.family = {
     m.trust = Math.max(0, m.trust - 5);
     Game.save(); UI.updateStatus();
     this.chat(key);
-    alert(`+${Game.fmt(sum)}`);
+    UI.toast(`+${Game.fmt(sum)}`, 'green');
   },
 
   congratulate(key) {
@@ -182,20 +182,20 @@ Apps.family = {
     Game.addXP(20);
     Game.save(); UI.updateStatus();
     this.chat(key);
-    alert('Поздравил(а)! Доверие +15');
+    UI.toast('Поздравил(а)! Доверие +15', 'green', 3200);
   },
 
   greetAll() {
     const [cm, cd] = this.getDateFromDay(Game.state.day);
     const isHoliday = (cm === 1 && cd === 1) || (cm === 3 && cd === 8) || (cm === 2 && cd === 23);
-    if (!isHoliday) return alert('Сегодня не праздник');
+    if (!isHoliday) return UI.toast('Сегодня не праздник', 'info');
     FAMILY_MEMBERS.forEach(f => {
       const m = this.initMember(f.key);
       m.trust = Math.min(100, m.trust + 3);
     });
     Game.save(); UI.updateStatus();
     this.render();
-    alert('Поздравил(а) родных! Доверие +3 всем');
+    UI.toast('Поздравил(а) родных! Доверие +3 всем', 'green', 3200);
   },
 
   checkBirthdays() {
@@ -227,7 +227,7 @@ Apps.family = {
         });
         if (total > 0) {
           Game.pushNotif('🎉', `С днём рождения тебя! Родные скинулись: ${Game.fmt(total)}`);
-          setTimeout(() => alert(`🎂 С днём рождения! Родные скинулись: ${Game.fmt(total)}`), 600);
+          UI.toast(`🎂 С днём рождения! +${Game.fmt(total)}`, 'gold', 4000);
         }
       }
     }
