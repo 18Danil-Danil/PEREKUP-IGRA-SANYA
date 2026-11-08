@@ -126,9 +126,9 @@ Apps.trade = {
     if (!t) return;
     const l = Game.state.listings.find(x => x.id === t.listingId);
     if (!l) return;
-    if (!Game.state.hasLicense) return alert('Нужны права. Оформи в ГосBuy.');
+    if (!Game.state.hasLicense) return UI.toast('Нужны права. Оформи в ГосBuy', 'red');
     const total = t.currentPrice + GOV_FEES.pts;
-    if (Game.state.money < total) return alert('Недостаточно денег (с ПТС нужно ' + Game.fmt(total) + ')');
+    if (Game.state.money < total) return UI.toast(`Недостаточно денег (с ПТС нужно ${Game.fmt(total)})`, 'red');
     Game.state.money -= total;
     l.sold = true;
     l.defects = [...l.defects, ...l.hiddenDefects];
@@ -137,7 +137,7 @@ Apps.trade = {
     Game.addXP(20);
     Game.save(); UI.updateStatus();
     this.activeTrade = null;
-    alert(`Куплено за ${Game.fmt(t.currentPrice)}`);
+    UI.toast(`Куплено за ${Game.fmt(t.currentPrice)}`, 'green', 3200);
     Apps.avtobuy.render();
   },
 
@@ -169,7 +169,7 @@ Apps.trade = {
     const v = prompt('Новая цена:', l.price);
     if (v === null) return;
     const n = parseInt(v);
-    if (isNaN(n) || n < 1000) return alert('Некорректная цена');
+    if (isNaN(n) || n < 1000) return UI.toast('Некорректная цена', 'red');
     l.price = n;
     Game.save(); this.render();
   },
@@ -188,10 +188,11 @@ Apps.trade = {
     Game.state.myListings.splice(i, 1);
     Game.state.pendingBuyers = Game.state.pendingBuyers.filter(b => b.listingId !== l.id);
     Game.save(); UI.updateStatus(); this.render();
+    UI.toast('Объявление снято', 'info');
   },
 
   spawnBuyers() {
-    if (!Game.state.myListings) return;
+    if (!Game.state.myListings || Game.state.myListings.length === 0) return;
     Game.state.myListings.forEach(l => {
       const existing = (Game.state.pendingBuyers||[]).filter(b => b.listingId === l.id).length;
       if (existing >= 2) return;
@@ -231,11 +232,11 @@ Apps.trade = {
       });
       Game.addReview(b.name, 'Скрыл дефект: ' + l.hiddenDefects[0], 1);
       Game.changeReputation(-10);
-      alert(`Продано за ${Game.fmt(b.offer)}\n⚠ Покупатель заметил скрытый дефект!\nВозможен суд на ${Game.fmt(Math.round(b.offer*0.3))}`);
+      UI.toast(`⚠ Покупатель заметил скрытый дефект! Возможен суд`, 'red', 4000);
     } else {
       Game.addReview(b.name, REVIEW_PHRASES.positive[Math.floor(Math.random()*REVIEW_PHRASES.positive.length)], 5);
       Game.changeReputation(3);
-      alert(`Продано за ${Game.fmt(b.offer)}\nОтзыв: ⭐⭐⭐⭐⭐`);
+      UI.toast(`Продано за ${Game.fmt(b.offer)} · ⭐⭐⭐⭐⭐`, 'green', 3200);
     }
 
     Game.state.myListings.splice(li, 1);
@@ -252,10 +253,12 @@ Apps.trade = {
     const counter = Math.round((b.offer + l.price) / 2);
     if (Math.random() < 0.6) {
       b.offer = counter;
-      Game.save(); alert(`Покупатель согласился на ${Game.fmt(counter)}`); this.render();
+      Game.save(); this.render();
+      UI.toast(`Покупатель согласился на ${Game.fmt(counter)}`, 'green');
     } else {
       Game.state.pendingBuyers.splice(i, 1);
-      Game.save(); alert('Покупатель ушёл'); this.render();
+      Game.save(); this.render();
+      UI.toast('Покупатель ушёл', 'info');
     }
   },
 
