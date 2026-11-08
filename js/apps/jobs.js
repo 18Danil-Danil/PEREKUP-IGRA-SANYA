@@ -10,6 +10,19 @@ Apps.jobs = {
     return !Game.state.jobsDoneToday.includes(jobId);
   },
 
+  // Останавливает все активные смены (интервалы + сброс флага active).
+  // Вызывается из UI при уходе с экрана работы.
+  cleanup() {
+    ['crane','wash','build'].forEach(k => {
+      if (this[k].interval) { clearInterval(this[k].interval); this[k].interval = null; }
+    });
+    this.crane.active = false;
+    this.wash.active = false;
+    this.build.active = false;
+    this.courier.active = false;
+    this.truck.active = false;
+  },
+
   render() {
     const s = document.getElementById('screen');
     s.innerHTML = `
@@ -93,34 +106,55 @@ Apps.jobs = {
       <button class="red" style="width:100%" onclick="Apps.jobs.stopCrane()">СТОП</button>
     `;
   },
-  startCrane() {
-    if (this.crane.active || !this.canWork('crane')) return;
-    this.crane = { active:true, pos:0, dir:1, zoneStart:35, zoneEnd:65, shots:0, total:0, interval:null };
+
+  // Запускает движение маркера. Безопасно вызывать повторно —
+  // старый интервал сначала гасится.
+  _animateCrane() {
+    if (this.crane.interval) clearInterval(this.crane.interval);
     this.crane.interval = setInterval(() => {
       this.crane.pos += this.crane.dir * 2;
       if (this.crane.pos >= 100) { this.crane.pos = 100; this.crane.dir = -1; }
-      if (this.crane.pos <= 0)   { this.crane.pos = 0;   this.crane.dir = 1; }
+      if (this.crane.pos <= 0)   { this.crane.pos = 0;   this.crane.dir = 1;  }
       const m = document.getElementById('craneMarker');
       if (m) m.style.left = this.crane.pos + '%';
     }, 18);
+  },
+
+  startCrane() {
+    if (this.crane.active || !this.canWork('crane')) return;
+    this.crane = { active:true, pos:0, dir:1, zoneStart:35, zoneEnd:65, shots:0, total:0, interval:null };
+    this._animateCrane();
     this.render();
   },
+
   stopCrane() {
     if (!this.crane.active) return;
     clearInterval(this.crane.interval);
+    this.crane.interval = null;
+
     const hit = this.crane.pos >= this.crane.zoneStart && this.crane.pos <= this.crane.zoneEnd;
     if (hit) this.crane.total += 2000;
     this.crane.shots++;
+
     if (this.crane.shots >= 5) {
       const total = this.crane.total;
       this.crane.active = false;
       this.finishJob('crane', total);
       alert(`Смена окончена! Заработано: ${Game.fmt(total)}`);
-      this.render(); return;
+      this.render();
+      return;
     }
+
+    // Готовим новую зону и сбрасываем маркер в начало
     this.crane.zoneStart = 20 + Math.random() * 50;
     this.crane.zoneEnd = Math.min(95, this.crane.zoneStart + 15 + Math.random() * 15);
+    this.crane.pos = 0;
+    this.crane.dir = 1;
+
     this.render();
+    // 🔑 Ключевой фикс: перезапускаем анимацию после перерисовки DOM.
+    // requestAnimationFrame гарантирует, что новый #craneMarker уже в дереве.
+    requestAnimationFrame(() => this._animateCrane());
   },
 
   /* ===== Мойка ===== */
@@ -134,6 +168,7 @@ Apps.jobs = {
       </div>
     `;
   },
+
   startWash() {
     if (this.wash.active || !this.canWork('wash')) return;
     this.wash = { active:true, clicks:0, timeLeft:8, earnings:0, interval:null };
@@ -153,6 +188,7 @@ Apps.jobs = {
       }
     }, 1000);
   },
+
   washClick() {
     if (!this.wash.active) return;
     this.wash.clicks++;
@@ -172,11 +208,13 @@ Apps.jobs = {
       <button class="green" style="width:100%" onclick="Apps.jobs.deliver()">Доставить заказ</button>
     `;
   },
+
   startCourier() {
     if (this.courier.active || !this.canWork('courier')) return;
     this.courier = { active:true, deliveries:0 };
     this.render();
   },
+
   deliver() {
     if (!this.courier.active) return;
     this.courier.deliveries++;
@@ -201,6 +239,7 @@ Apps.jobs = {
       </div>
     `;
   },
+
   startBuild() {
     if (this.build.active || !this.canWork('build')) return;
     this.build = { active:true, clicks:0, timeLeft:5, earnings:0, interval:null };
@@ -219,6 +258,7 @@ Apps.jobs = {
       }
     }, 1000);
   },
+
   buildClick() {
     if (!this.build.active) return;
     this.build.clicks++;
@@ -248,11 +288,13 @@ Apps.jobs = {
       </div>
     `;
   },
+
   startTruck() {
     if (this.truck.active || !this.canWork('truck')) return;
     this.truck = { active:true, step:0, total:0 };
     this.render();
   },
+
   truckChoice(yes) {
     if (!this.truck.active) return;
     const events = [
@@ -264,7 +306,6 @@ Apps.jobs = {
     this.truck.total += gain;
     this.truck.step++;
     if (this.truck.step >= 3) {
-      // Базовые 20 000 + события
       const total = 20000 + this.truck.total;
       this.truck.active = false;
       this.finishJob('truck', total);
