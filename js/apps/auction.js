@@ -52,7 +52,7 @@ Apps.auction = {
     const lot = Game.state.auctionLots.find(l => l.id === id);
     if (!lot) return;
     const amount = Math.round(lot.currentBid * 1.05);
-    if (Game.state.money < amount) return alert('Недостаточно денег');
+    if (Game.state.money < amount) return UI.toast('Недостаточно денег', 'red');
     Game.state.money -= amount;
     lot.currentBid = amount;
     lot.lastBidder = 'player';
@@ -60,13 +60,15 @@ Apps.auction = {
       lot.currentBid = Math.round(lot.currentBid * 1.07);
       lot.lastBidder = 'bot';
       Game.state.money += amount;
-      alert('Бот перебил ставку! Деньги возвращены');
-    } else alert('Ставка принята!');
+      UI.toast('Бот перебил ставку! Деньги возвращены', 'red', 3200);
+    } else {
+      UI.toast('Ставка принята!', 'green');
+    }
     Game.save(); UI.updateStatus(); this.render();
   },
 
   openContainer() {
-    if (Game.state.money < 500000) return alert('Недостаточно');
+    if (Game.state.money < 500000) return UI.toast('Недостаточно', 'red');
     Game.state.money -= 500000;
     const r = Math.random();
     let c;
@@ -78,11 +80,11 @@ Apps.auction = {
     else c = CONTAINER_CONTENTS[5];
     Game.state.money += c.value;
     Game.save(); UI.updateStatus(); this.render();
-    alert(`📦 ${c.icon} ${c.name}\nПолучено: ${Game.fmt(c.value)}`);
+    UI.toast(`📦 ${c.icon} ${c.name} · ${Game.fmt(c.value)}`, 'gold', 4000);
   },
 
   inspectContainer() {
-    if (Game.state.money < 100000) return alert('Недостаточно');
+    if (Game.state.money < 100000) return UI.toast('Недостаточно', 'red');
     Game.state.money -= 100000;
     Game.save(); UI.updateStatus();
     const r = Math.random();
@@ -90,7 +92,7 @@ Apps.auction = {
       ? '🔦 Чувствуется что-то ценное...'
       : r < 0.7 ? '🔦 Скорее всего запчасти'
       : '🔦 Что-то большое, но вряд ли дорогое';
-    alert(hint);
+    UI.toast(hint, 'info', 3500);
   },
 
   tick() {
@@ -115,7 +117,7 @@ Apps.auction = {
     });
     if (results.length) {
       results.forEach(n => Game.pushNotif('🏆', `Победа на аукционе: ${n}`));
-      setTimeout(() => alert(`🏆 Победа на аукционе: ${results.join(', ')}`), 100);
+      UI.toast(`🏆 Победа: ${results.join(', ')}`, 'gold', 4000);
     }
     if (Game.state.auctionLots.length < 3 && Math.random() < 0.5) this.spawnLot();
   }
