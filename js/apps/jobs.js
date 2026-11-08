@@ -5,11 +5,8 @@ Apps.jobs = {
   build:   { active:false, clicks:0, timeLeft:5, earnings:0, interval:null },
   truck:   { active:false, step:0, total:0 },
 
-  // Ширина зоны по попыткам (в %): 1-я широкая, 5-я узкая
   CRANE_WIDTHS: [40, 33, 26, 19, 13],
-  // Радиус "идеальной" зоны вокруг центра (±% от полоски)
   CRANE_PERFECT_HALF: 2,
-  // Награды
   CRANE_HIT: 2000,
   CRANE_PERFECT: 3500,
 
@@ -128,9 +125,9 @@ Apps.jobs = {
           border:1px solid ${fb.type==='perfect'?'rgba(255,205,60,.4)':fb.type==='hit'?'rgba(0,229,160,.4)':'rgba(255,84,112,.4)'};
           font-size:20px;font-weight:900;
           color:${fb.type==='perfect'?'#ffcd3c':fb.type==='hit'?'#00e5a0':'#ff5470'}">
-          ${fb.type==='perfect' ? '⭐ PERFECT +'+Game.fmt(fb.earned) : ''}
-          ${fb.type==='hit'     ? '✓ HIT +'+Game.fmt(fb.earned) : ''}
-          ${fb.type==='miss'    ? '✗ MISS' : ''}
+          ${fb.type==='perfect' ? '🎯 В ЯБЛОЧКО! +'+Game.fmt(fb.earned) : ''}
+          ${fb.type==='hit'     ? '✓ ТОЧНО! +'+Game.fmt(fb.earned) : ''}
+          ${fb.type==='miss'    ? '✗ ПРОМАХ' : ''}
         </div>
       ` : `<button class="red" style="width:100%" onclick="Apps.jobs.stopCrane()">СТОП</button>`}
     `;
@@ -184,7 +181,6 @@ Apps.jobs = {
     c.lastFeedback = { type, earned };
     this.render();
 
-    // через 900 мс — следующая попытка или финал
     c.feedbackTimeout = setTimeout(() => {
       c.feedbackTimeout = null;
 
@@ -195,11 +191,10 @@ Apps.jobs = {
         c.lastFeedback = null;
         this.finishJob('crane', total);
         this.render();
-        alert(`Смена окончена! Заработано: ${Game.fmt(total)}`);
+        UI.toast(`Смена окончена! +${Game.fmt(total)}`, 'green', 3200);
         return;
       }
 
-      // готовим следующую попытку — зона уже
       const width = this.CRANE_WIDTHS[c.shots] || 13;
       const zone = this._randomZone(width);
       c.zoneStart = zone.start;
@@ -237,9 +232,8 @@ Apps.jobs = {
         clearInterval(this.wash.interval);
         this.wash.active = false;
         const earn = this.wash.earnings;
-        const clicks = this.wash.clicks;
         this.finishJob('wash', earn);
-        alert(`Мойка окончена! Заработано: ${Game.fmt(earn)}\nКликов: ${clicks}`);
+        UI.toast(`Мойка окончена! +${Game.fmt(earn)}`, 'green', 3200);
         this.render();
       }
     }, 1000);
@@ -278,7 +272,7 @@ Apps.jobs = {
       const total = 15000;
       this.courier.active = false;
       this.finishJob('courier', total);
-      alert(`Смена курьера окончена! +${Game.fmt(total)}`);
+      UI.toast(`Смена курьера окончена! +${Game.fmt(total)}`, 'green', 3200);
       this.render(); return;
     }
     this.render();
@@ -309,7 +303,7 @@ Apps.jobs = {
         this.build.active = false;
         const earn = this.build.earnings;
         this.finishJob('build', earn);
-        alert(`Смена окончена! Заработано: ${Game.fmt(earn)}\nКликов: ${this.build.clicks}`);
+        UI.toast(`Смена окончена! +${Game.fmt(earn)}`, 'green', 3200);
         this.render();
       }
     }, 1000);
@@ -365,7 +359,7 @@ Apps.jobs = {
       const total = 20000 + this.truck.total;
       this.truck.active = false;
       this.finishJob('truck', total);
-      alert(`Рейс завершён! +${Game.fmt(total)}`);
+      UI.toast(`Рейс завершён! +${Game.fmt(total)}`, 'green', 3200);
       this.render(); return;
     }
     this.render();
