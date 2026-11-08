@@ -1,6 +1,14 @@
 Apps.race = {
   state: { active:false, tier:null, phase:'idle', timeout:null, loseTimeout:null, reactionAt:0, driverDelay:0 },
 
+  // Гасит все таймауты и сбрасывает гонку. Вызывается UI при уходе с экрана.
+  cleanup() {
+    if (this.state.timeout)     { clearTimeout(this.state.timeout);     this.state.timeout = null; }
+    if (this.state.loseTimeout) { clearTimeout(this.state.loseTimeout); this.state.loseTimeout = null; }
+    this.state.active = false;
+    this.state.phase = 'idle';
+  },
+
   render() {
     const s = document.getElementById('screen');
     const st = this.state;
@@ -58,6 +66,8 @@ Apps.race = {
       if (Game.state.money < tier.buy) return alert('Мало денег');
       Game.state.money -= tier.buy;
     }
+    // Погасим возможные висящие таймауты от предыдущей гонки
+    this.cleanup();
     this.state = {
       active:true, tier:id, phase:'waiting', timeout:null, loseTimeout:null,
       reactionAt:0, driverDelay: 280 + Math.random() * 220
@@ -65,6 +75,7 @@ Apps.race = {
     this.render();
     const wait = 1500 + Math.random() * 2500;
     this.state.timeout = setTimeout(() => {
+      if (!this.state.active) return; // вышли с экрана — не запускаем
       this.state.phase = 'go';
       this.state.reactionAt = performance.now();
       this.render();
