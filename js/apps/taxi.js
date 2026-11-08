@@ -33,14 +33,15 @@ Apps.taxi = {
   hire(carId) {
     const c = Game.state.garage.find(x=>x.id===carId);
     if (!c) return;
-    if (c.defects.length) return alert('Сначала отремонтируй машину — водитель не сядет за битую');
-    if (Game.state.taxiDrivers.find(d=>d.carId===carId)) return alert('Водитель уже есть');
+    if (c.defects.length) return UI.toast('Сначала отремонтируй машину', 'red');
+    if (Game.state.taxiDrivers.find(d=>d.carId===carId)) return UI.toast('Водитель уже есть', 'info');
     Game.state.taxiDrivers.push({ carId, income: Math.round(c.market * 0.015) });
     Game.save(); UI.updateStatus(); this.render();
-    alert('Водитель нанят!');
+    UI.toast('Водитель нанят!', 'green');
   },
   fire(carId) {
     Game.state.taxiDrivers = Game.state.taxiDrivers.filter(d=>d.carId!==carId);
     Game.save(); this.render();
+    UI.toast('Водитель уволен', 'info');
   }
 };
