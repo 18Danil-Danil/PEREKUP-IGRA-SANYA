@@ -77,10 +77,10 @@ Apps.profile = {
     const openSuits = Game.state.lawsuits.filter(l => !l.resolved);
     const suit = openSuits[i];
     if (!suit) return;
-    if (Game.state.money < suit.amount) return alert('Не хватает денег');
+    if (Game.state.money < suit.amount) return UI.toast('Не хватает денег', 'red');
     Game.state.money -= suit.amount;
     suit.resolved = true;
     Game.save(); UI.updateStatus(); this.render();
-    alert('Иск урегулирован');
+    UI.toast('Иск урегулирован', 'green');
   }
 };
