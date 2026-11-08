@@ -1,7 +1,6 @@
 Apps.sleep = {
   render() {
     const s = document.getElementById('screen');
-    const today = Game.state.day;
     s.innerHTML = `
       <div class="header"><span class="back" onclick="UI.back()">←</span><h2>Сон 💤</h2></div>
 
@@ -35,6 +34,7 @@ Apps.sleep = {
           • Обновятся работы (можно снова заработать)<br>
           • Придут доходы с недвижимости и таксопарка<br>
           • Появятся 2 новых объявления на AvtoBuy<br>
+          • Могут прийти покупатели на твои объявления<br>
           • Могут прийти события от родных<br>
           • Налоги пересчитаются раз в 7 дней
         </div>
@@ -49,13 +49,16 @@ Apps.sleep = {
     Game.spawnListings(2);
     const rent = Game.state.apartments.reduce((s,a)=>s+a.rent,0);
     const taxi = Game.state.taxiDrivers.reduce((s,d)=>s+d.income,0);
-    Game.state.money += rent + taxi;
+    const biz = Object.values(Game.state.businesses || {}).filter(Boolean).reduce((s,b)=>s+b.dailyIncome,0);
+    Game.state.money += rent + taxi + biz;
     Game.state.taxiDrivers.forEach(d => {
       if (Math.random() < 0.15) {
         const car = Game.state.garage.find(c => c.id === d.carId);
         if (car) car.defects.push("ДТП в такси");
       }
     });
+    // 🔑 Ключевой фикс: спавним покупателей как в Game.tick()
+    if (window.Apps && Apps.trade && Apps.trade.spawnBuyers) Apps.trade.spawnBuyers();
     if (Game.state.day - Game.state.lastTaxDay >= 7 && Game.state.taxDebt > 0) {
       Game.state.taxDebt = Math.round(Game.state.taxDebt * (1 + GOV_FEES.taxPenaltyPerDay));
       Game.state.lastTaxDay = Game.state.day;
@@ -64,20 +67,21 @@ Apps.sleep = {
     if (window.Apps && Apps.family && Apps.family.checkBirthdays) Apps.family.checkBirthdays();
     if (window.Apps && Apps.auction && Apps.auction.tick) Apps.auction.tick();
     Game.save(); UI.updateStatus();
-    if (rent + taxi > 0) alert(`День ${Game.state.day}\n+${Game.fmt(rent + taxi)} с пассива`);
+    const passive = rent + taxi + biz;
+    if (passive > 0) UI.toast(`День ${Game.state.day} · +${Game.fmt(passive)} с пассива`, 'green');
   },
 
   sleep() {
     let hours = Game.state.hour + 8;
     if (hours >= 24) { this.nextDay(); }
-    else { Game.state.hour = hours; Game.save(); UI.updateStatus(); alert('Поспали 8 часов'); }
+    else { Game.state.hour = hours; Game.save(); UI.updateStatus(); UI.toast('Поспали 8 часов', 'info'); }
     UI.back();
   },
 
   nap() {
     const h = Game.state.hour + 2;
     if (h >= 24) { this.nextDay(); }
-    else { Game.state.hour = h; Game.save(); UI.updateStatus(); alert('Вздремнули 2 часа'); }
+    else { Game.state.hour = h; Game.save(); UI.updateStatus(); UI.toast('Вздремнули 2 часа', 'info'); }
     UI.back();
   },
 
