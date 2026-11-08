@@ -67,6 +67,9 @@ const Game = {
     if (s.racesLost === undefined) s.racesLost = 0;
     if (s.reputation === undefined) s.reputation = 5;
     if (s.activeTrade === undefined) s.activeTrade = null;
+    // v3.3
+    if (!s.notifications) s.notifications = [];
+    if (s.tutorialShown === undefined) s.tutorialShown = false;
     this.save();
   },
 
@@ -87,6 +90,8 @@ const Game = {
       pendingBuyers: [],
       driveAceBest: 0, racesWon: 0, racesLost: 0,
       activeTrade: null,
+      notifications: [],
+      tutorialShown: false,
       family:{
         mom:     { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0, needCongrats:false, lastBirthdayDay:0, lastVisit:0, chatLog:[] },
         grandma: { trust:50, lastGift:0, birthdaySeen:0, birthdayCard:0, needCongrats:false, lastBirthdayDay:0, lastVisit:0, chatLog:[] },
@@ -122,7 +127,6 @@ const Game = {
           if (car) car.defects.push("ДТП в такси");
         }
       });
-      // Покупатели на свои объявления раз в день
       if (window.Apps && Apps.trade && Apps.trade.spawnBuyers) Apps.trade.spawnBuyers();
       if (this.state.day - this.state.lastTaxDay >= 7 && this.state.taxDebt > 0) {
         this.state.taxDebt = Math.round(this.state.taxDebt * (1 + GOV_FEES.taxPenaltyPerDay));
@@ -136,7 +140,31 @@ const Game = {
     if (window.UI) UI.updateStatus();
   },
 
-  save() { try { localStorage.setItem(this.SAVE_KEY, JSON.stringify(this.state)); } catch(e){} },
+  save() {
+    try { localStorage.setItem(this.SAVE_KEY, JSON.stringify(this.state)); } catch(e){}
+    // flash индикатора автосейва
+    const el = document.getElementById('save-indicator');
+    if (el) {
+      el.classList.remove('flash');
+      void el.offsetWidth;
+      el.classList.add('flash');
+    }
+  },
+
+  // Пуш уведомления в колокольчик
+  pushNotif(icon, text) {
+    if (!this.state.notifications) this.state.notifications = [];
+    this.state.notifications.push({
+      id: this.state.nextId++,
+      icon, text,
+      day: this.state.day,
+      hour: this.state.hour,
+      read: false
+    });
+    if (this.state.notifications.length > 100) this.state.notifications.shift();
+    this.save();
+    if (window.UI && UI.updateStatus) UI.updateStatus();
+  },
 
   // ===== Слоты сохранений =====
   getSlotsInfo() {
