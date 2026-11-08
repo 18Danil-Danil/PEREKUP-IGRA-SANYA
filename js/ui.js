@@ -1,26 +1,27 @@
 const UI = {
   apps: [
-    { id:'avtobuy',    name:'AvtoBuy',      icon:'🚗', color:'linear-gradient(135deg,#4a8cff,#1e40af)' },
-    { id:'messages',   name:'Сообщения',    icon:'💬', color:'linear-gradient(135deg,#00e5a0,#008f5f)' },
-    { id:'bank',       name:'П-Банк',       icon:'🏦', color:'linear-gradient(135deg,#b366ff,#6b21a8)' },
-    { id:'garage',     name:'Гараж',        icon:'🔧', color:'linear-gradient(135deg,#ffb547,#b45309)' },
-    { id:'trade',      name:'Мои объявл.',  icon:'🏷️', color:'linear-gradient(135deg,#00e5a0,#047857)' },
-    { id:'jobs',       name:'Работа',       icon:'💼', color:'linear-gradient(135deg,#ffd93d,#a16207)' },
-    { id:'business',   name:'Бизнес',       icon:'🏢', color:'linear-gradient(135deg,#f97316,#7c2d12)' },
-    { id:'race',       name:'Гонки',        icon:'🏁', color:'linear-gradient(135deg,#ef4444,#7f1d1d)' },
-    { id:'casino',     name:'Casino',       icon:'🎰', color:'linear-gradient(135deg,#ff5470,#991b1b)' },
-    { id:'family',     name:'Родные',       icon:'👨‍👩‍👧', color:'linear-gradient(135deg,#ff6bb3,#831843)' },
-    { id:'gosbuy',     name:'ГосBuy',       icon:'🪪', color:'linear-gradient(135deg,#8ba3c7,#1e293b)' },
-    { id:'profile',    name:'Профиль',      icon:'👤', color:'linear-gradient(135deg,#7c8fa8,#334155)' },
-    { id:'shop',       name:'Магазин',      icon:'🛒', color:'linear-gradient(135deg,#3dd8e8,#0e7490)' },
-    { id:'numbers',    name:'Номера',       icon:'🔢', color:'linear-gradient(135deg,#ffd93d,#854d0e)' },
-    { id:'auction',    name:'Аукцион',      icon:'🏛️', color:'linear-gradient(135deg,#3ddbc0,#115e59)' },
-    { id:'carImport',  name:'Импорт',       icon:'✈️', color:'linear-gradient(135deg,#3dd8e8,#0369a1)' },
-    { id:'realestate', name:'Недвижимость', icon:'🏠', color:'linear-gradient(135deg,#ff9352,#9a3412)' },
-    { id:'taxi',       name:'Таксопарк',    icon:'🚕', color:'linear-gradient(135deg,#ffd93d,#d97706)' },
-    { id:'sleep',      name:'Сон',          icon:'💤', color:'linear-gradient(135deg,#8b93ff,#3730a3)' },
-    { id:'tutorial',   name:'Как играть',   icon:'📖', color:'linear-gradient(135deg,#7c5cff,#3730a3)' },
-    { id:'saves',      name:'Сохранения',   icon:'💾', color:'linear-gradient(135deg,#64748b,#1e293b)' }
+    { id:'avtobuy',       name:'AvtoBuy',      icon:'🚗', color:'linear-gradient(135deg,#4a8cff,#1e40af)' },
+    { id:'messages',      name:'Сообщения',    icon:'💬', color:'linear-gradient(135deg,#00e5a0,#008f5f)' },
+    { id:'bank',          name:'П-Банк',       icon:'🏦', color:'linear-gradient(135deg,#b366ff,#6b21a8)' },
+    { id:'garage',        name:'Гараж',        icon:'🔧', color:'linear-gradient(135deg,#ffb547,#b45309)' },
+    { id:'trade',         name:'Мои объявл.',  icon:'🏷️', color:'linear-gradient(135deg,#00e5a0,#047857)' },
+    { id:'jobs',          name:'Работа',       icon:'💼', color:'linear-gradient(135deg,#ffd93d,#a16207)' },
+    { id:'business',      name:'Бизнес',       icon:'🏢', color:'linear-gradient(135deg,#f97316,#7c2d12)' },
+    { id:'race',          name:'Гонки',        icon:'🏁', color:'linear-gradient(135deg,#ef4444,#7f1d1d)' },
+    { id:'casino',        name:'Casino',       icon:'🎰', color:'linear-gradient(135deg,#ff5470,#991b1b)' },
+    { id:'family',        name:'Родные',       icon:'👨‍👩‍👧', color:'linear-gradient(135deg,#ff6bb3,#831843)' },
+    { id:'gosbuy',        name:'ГосBuy',       icon:'🪪', color:'linear-gradient(135deg,#8ba3c7,#1e293b)' },
+    { id:'profile',       name:'Профиль',      icon:'👤', color:'linear-gradient(135deg,#7c8fa8,#334155)' },
+    { id:'achievements',  name:'Достижения',   icon:'🏅', color:'linear-gradient(135deg,#ffcd3c,#b45309)' },
+    { id:'shop',          name:'Магазин',      icon:'🛒', color:'linear-gradient(135deg,#3dd8e8,#0e7490)' },
+    { id:'numbers',       name:'Номера',       icon:'🔢', color:'linear-gradient(135deg,#ffd93d,#854d0e)' },
+    { id:'auction',       name:'Аукцион',      icon:'🏛️', color:'linear-gradient(135deg,#3ddbc0,#115e59)' },
+    { id:'carImport',     name:'Импорт',       icon:'✈️', color:'linear-gradient(135deg,#3dd8e8,#0369a1)' },
+    { id:'realestate',    name:'Недвижимость', icon:'🏠', color:'linear-gradient(135deg,#ff9352,#9a3412)' },
+    { id:'taxi',          name:'Таксопарк',    icon:'🚕', color:'linear-gradient(135deg,#ffd93d,#d97706)' },
+    { id:'sleep',         name:'Сон',          icon:'💤', color:'linear-gradient(135deg,#8b93ff,#3730a3)' },
+    { id:'tutorial',      name:'Как играть',   icon:'📖', color:'linear-gradient(135deg,#7c5cff,#3730a3)' },
+    { id:'saves',         name:'Сохранения',   icon:'💾', color:'linear-gradient(135deg,#64748b,#1e293b)' }
   ],
 
   _lastMoney: null,
@@ -35,13 +36,11 @@ const UI = {
     this._installScreenObserver();
     this._installToast();
 
-    // Первый запуск — показываем туториал
     if (!Game.state.tutorialShown) {
       setTimeout(() => this.open('tutorial'), 400);
     }
   },
 
-  // Стили + элементы статусбара (автосейв, колокольчик)
   _installShell() {
     const style = document.createElement('style');
     style.textContent = `
@@ -67,7 +66,6 @@ const UI = {
     const sb = document.getElementById('statusbar');
     if (!sb) return;
 
-    // Автосейв-индикатор в начало
     if (!document.getElementById('save-indicator')) {
       const save = document.createElement('span');
       save.id = 'save-indicator';
@@ -75,7 +73,6 @@ const UI = {
       sb.insertBefore(save, sb.firstChild);
     }
 
-    // Колокольчик перед балансом
     if (!document.getElementById('bell')) {
       const bell = document.createElement('span');
       bell.id = 'bell';
@@ -101,7 +98,6 @@ const UI = {
     const h = String(Game.state.hour).padStart(2,'0');
     clockEl.textContent = `День ${Game.state.day}, ${h}:00`;
 
-    // Бейдж непрочитанных уведомлений
     const badge = document.getElementById('bell-badge');
     if (badge) {
       const unread = (Game.state.notifications || []).filter(n => !n.read).length;
